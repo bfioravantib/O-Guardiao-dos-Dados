@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block titulo %}Quiz{% endblock %}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body class="{% block classe_body %}tela-interna{% endblock %}">
+        {% block corpo %}
+        <header class="topo">
+            <a href="{{ url_for('menu.inicio') }}" class="link-voltar">&larr; Menu</a>
+            <span class="topo-titulo">{% block topo_titulo %}{% endblock %}</span>
+            <span>{% block topo_direita %}{% endblock %}</span>
+        </header>
+        {% block abaixo_topo %}{% endblock %}
+        <main class="conteudo">
+            {% block conteudo %}{% endblock %}
+        </main>
+        {% endblock %}
+        {% block scripts %}{% endblock %}
+    </body>
+</html>

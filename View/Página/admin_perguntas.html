@@ -1,0 +1,36 @@
+{% extends 'admin.html' %}
+
+{% block admin_conteudo %}
+<div class="cartao">
+    <div class="cabecalho-secao">
+        <h3>Perguntas cadastradas</h3>
+        <div class="acoes">
+            <form method="post" action="{{ url_for('admin.restaurar_perguntas') }}"
+                  onsubmit="return confirm('Substituir todas as perguntas atuais pelas 5 perguntas de exemplo?')">
+                <button type="submit" class="botao botao-secundario botao-pequeno">Restaurar exemplos</button>
+            </form>
+            <a href="{{ url_for('admin.nova_pergunta') }}" class="botao botao-primario botao-pequeno">+ Nova pergunta</a>
+        </div>
+    </div>
+
+    <ol class="lista-perguntas">
+        {% for p in perguntas %}
+        <li class="item-pergunta">
+            <div class="corpo">
+                <p>{{ p.enunciado }}</p>
+                <p class="detalhe-resposta">Correta: {{ letras[p.correta] }} · {{ p.alternativas[p.correta] }}</p>
+            </div>
+            <div class="acoes">
+                <a href="{{ url_for('admin.editar_pergunta', pergunta_id=p.id) }}" class="botao botao-secundario botao-pequeno">Editar</a>
+                <form method="post" action="{{ url_for('admin.excluir_pergunta', pergunta_id=p.id) }}"
+                      onsubmit="return confirm('Excluir esta pergunta? O histórico de respostas será mantido.')">
+                    <button type="submit" class="botao botao-perigo botao-pequeno">Excluir</button>
+                </form>
+            </div>
+        </li>
+        {% else %}
+        <li class="vazio">Nenhuma pergunta cadastrada.</li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}

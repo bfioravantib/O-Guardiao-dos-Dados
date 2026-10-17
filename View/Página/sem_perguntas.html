@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Quiz · Jogar{% endblock %}
+
+{% block conteudo %}
+<section class="cartao centro">
+    <h2>Nenhuma pergunta cadastrada</h2>
+    <p class="texto-suave">Cadastre perguntas na área administrativa para começar.</p>
+    <div class="acoes acoes-centro">
+        <a href="{{ url_for('menu.inicio') }}" class="botao botao-primario">Voltar ao menu</a>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Quiz · Jogar{% endblock %}
+{% block topo_titulo %}Pergunta {{ numero }} de {{ total }}{% endblock %}
+
+{% block abaixo_topo %}
+{% set concluidas = numero if resposta else numero - 1 %}
+<div class="progresso"><div class="progresso-barra" style="width: {{ (concluidas / total * 100)|round(1) }}%"></div></div>
+{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+    <h2 class="enunciado">{{ pergunta.enunciado }}</h2>
+
+    <form method="post" action="{{ url_for('jogo.responder') }}">
+        <ul class="alternativas">
+            {% for texto in pergunta.alternativas %}
+            {% set i = loop.index0 %}
+            <li>
+                <button type="submit" name="alternativa" value="{{ i }}"
+                        class="alternativa {% if resposta %}{{ 'correta' if i == resposta.correta else ('incorreta' if i == resposta.escolhida else 'esmaecida') }}{% endif %}"
+                        {{ 'disabled' if resposta }}>
+                    <span class="letra">{{ letras[i] }}</span>
+                    <span class="texto">{{ texto }}</span>
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </form>
+
+    {% if resposta %}
+    {% set acertou = resposta.escolhida == resposta.correta %}
+    <div class="feedback {{ 'acerto' if acertou else 'erro' }}">
+        <p class="feedback-titulo">{{ 'Resposta correta!' if acertou else 'Resposta incorreta' }}</p>
+        {% if not acertou %}
+        <p class="feedback-correta">A alternativa correta é {{ letras[resposta.correta] }}: {{ pergunta.alternativas[resposta.correta] }}</p>
+        {% endif %}
+        <div class="comentario">
+            <span class="comentario-rotulo">Comentário</span>
+            <p>{{ pergunta.comentario }}</p>
+        </div>
+        <form method="post" action="{{ url_for('jogo.proxima') }}" class="acoes">
+            <button type="submit" class="botao botao-primario" autofocus>{{ 'Ver resultado' if ultima else 'Próxima' }}</button>
+        </form>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if not resposta %}
+<script>
+    // Atalhos de teclado: A–E ou 1–5 escolhem a alternativa
+    document.addEventListener('keydown', evento => {
+        if (evento.ctrlKey || evento.altKey || evento.metaKey || evento.key.length !== 1) return;
+        const tecla = evento.key.toUpperCase();
+        let i = 'ABCDE'.indexOf(tecla);
+        if (i < 0 && /^[1-5]$/.test(tecla)) i = Number(tecla) - 1;
+        const botao = document.querySelectorAll('.alternativa')[i];
+        if (i >= 0 && botao) botao.click();
+    });
+</script>
+{% endif %}
+{% endblock %}

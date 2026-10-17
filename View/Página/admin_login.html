@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Quiz · Administração{% endblock %}
+{% block topo_titulo %}Área administrativa{% endblock %}
+
+{% block conteudo %}
+<section class="cartao cartao-estreito">
+    <h2>Acesso restrito</h2>
+    <form method="post">
+        <label class="campo">
+            <span>PIN</span>
+            <input type="password" name="pin" inputmode="numeric" autocomplete="off" required autofocus>
+        </label>
+        {% if erro %}<p class="texto-erro">PIN incorreto.</p>{% endif %}
+        <div class="acoes">
+            <button type="submit" class="botao botao-primario">Entrar</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

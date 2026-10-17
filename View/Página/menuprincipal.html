@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block classe_body %}tela-menu{% endblock %}
+
+{% block corpo %}
+<a href="{{ url_for('admin.inicio') }}" class="botao-admin" title="Área administrativa" aria-label="Área administrativa">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path fill="currentColor" d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.67 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.25.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>
+    </svg>
+</a>
+
+<main class="cartao cartao-menu">
+    <div class="logo" aria-hidden="true">?</div>
+    <h1>Quiz</h1>
+    <p class="subtitulo">Teste seus conhecimentos respondendo às perguntas a seguir.</p>
+    {% if total_perguntas %}
+        <a class="botao botao-primario botao-grande" href="{{ url_for('jogo.iniciar') }}">Jogar</a>
+        <p class="info-perguntas texto-suave">
+            {{ total_perguntas }} {{ 'pergunta disponível' if total_perguntas == 1 else 'perguntas disponíveis' }}
+        </p>
+    {% else %}
+        <span class="botao botao-primario botao-grande desabilitado" aria-disabled="true">Jogar</span>
+        <p class="info-perguntas texto-suave">Nenhuma pergunta cadastrada.</p>
+    {% endif %}
+</main>
+{% endblock %}

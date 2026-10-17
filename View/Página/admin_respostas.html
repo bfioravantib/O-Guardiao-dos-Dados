@@ -1,0 +1,75 @@
+{% extends 'admin.html' %}
+
+{% macro percentual(acertos, total) %}{{ ((acertos / total * 100)|round|int ~ '%') if total else '–' }}{% endmacro %}
+
+{% block admin_conteudo %}
+<div class="indicadores">
+    <div class="indicador"><span class="indicador-valor">{{ resumo.partidas }}</span><span class="indicador-rotulo">Partidas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ resumo.respostas }}</span><span class="indicador-rotulo">Respostas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(resumo.acertos, resumo.respostas) }}</span><span class="indicador-rotulo">Taxa de acerto</span></div>
+</div>
+
+<div class="cartao">
+    <h3>Desempenho por pergunta</h3>
+    <div class="tabela-rolagem">
+        <table class="tabela">
+            <thead>
+                <tr><th>Pergunta</th><th class="num">Respostas</th><th class="num">Acertos</th><th>Taxa</th></tr>
+            </thead>
+            <tbody>
+                {% for est in desempenho %}
+                {% set taxa = (est.acertos / est.vezes * 100)|round|int if est.vezes else 0 %}
+                <tr>
+                    <td class="{{ 'excluida' if est.excluida }}">{{ est.enunciado }}{{ ' (excluída)' if est.excluida }}</td>
+                    <td class="num">{{ est.vezes }}</td>
+                    <td class="num">{{ est.acertos }}</td>
+                    <td>
+                        <div class="taxa">
+                            <div class="taxa-trilho"><div class="taxa-preenchida" style="width: {{ taxa }}%"></div></div>
+                            <span class="taxa-valor">{{ percentual(est.acertos, est.vezes) }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="vazio">Nenhuma pergunta cadastrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="cartao">
+    <div class="cabecalho-secao">
+        <h3>Histórico de partidas</h3>
+        {% if partidas %}
+        <form method="post" action="{{ url_for('admin.limpar_respostas') }}"
+              onsubmit="return confirm('Apagar todo o histórico de partidas? Esta ação não pode ser desfeita.')">
+            <button type="submit" class="botao botao-perigo botao-pequeno">Limpar histórico</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="lista-partidas">
+        {% for partida in partidas %}
+        <details class="partida">
+            <summary>
+                <span class="data">{{ partida.data.strftime('%d/%m/%Y %H:%M') }}</span>
+                <span class="selo">{{ partida.acertos }}/{{ partida.total }} acertos</span>
+            </summary>
+            <ol class="resumo-respostas">
+                {% for r in partida.respostas %}
+                <li>
+                    <span class="marca {{ 'acerto' if r.acertou else 'erro' }}">{{ '✓' if r.acertou else '✗' }}</span>
+                    <div>
+                        <div>{{ r.enunciado }}</div>
+                        <div class="detalhe-resposta">Respondeu {{ letras[r.escolhida] }} · Correta {{ letras[r.correta] }}</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </details>
+        {% else %}
+        <p class="vazio">Nenhuma partida registrada ainda.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

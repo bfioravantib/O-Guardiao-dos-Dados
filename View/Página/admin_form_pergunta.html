@@ -1,0 +1,46 @@
+{% extends 'admin.html' %}
+
+{% block admin_conteudo %}
+<div class="cartao">
+    <h3>{{ 'Editar pergunta' if pergunta_id else 'Nova pergunta' }}</h3>
+
+    {% if erros %}
+    <ul class="lista-erros">
+        {% for erro in erros %}<li>{{ erro }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="post">
+        <label class="campo">
+            <span>Enunciado</span>
+            <textarea name="enunciado" rows="3" required>{{ pergunta.enunciado }}</textarea>
+        </label>
+
+        <fieldset class="campo">
+            <legend>Alternativas <small class="texto-suave">(marque a correta)</small></legend>
+            <div class="campos-alternativas">
+                {% for letra in letras %}
+                {% set i = loop.index0 %}
+                <label class="linha-alternativa">
+                    <input type="radio" name="correta" value="{{ i }}" required
+                           aria-label="Alternativa {{ letra }} é a correta" {{ 'checked' if pergunta.correta == i }}>
+                    <span class="letra">{{ letra }}</span>
+                    <input type="text" name="alternativa_{{ i }}" required
+                           placeholder="Texto da alternativa {{ letra }}" value="{{ pergunta.alternativas[i] }}">
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <label class="campo">
+            <span>Comentário <small class="texto-suave">(exibido após a resposta)</small></span>
+            <textarea name="comentario" rows="4" required>{{ pergunta.comentario }}</textarea>
+        </label>
+
+        <div class="acoes">
+            <a href="{{ url_for('admin.perguntas') }}" class="botao botao-secundario">Cancelar</a>
+            <button type="submit" class="botao botao-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

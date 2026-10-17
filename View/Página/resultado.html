@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Quiz · Resultado{% endblock %}
+{% block topo_titulo %}Fim de jogo{% endblock %}
+{% block abaixo_topo %}<div class="progresso"><div class="progresso-barra" style="width: 100%"></div></div>{% endblock %}
+
+{% block conteudo %}
+<section class="cartao">
+    <h2 class="centro">Resultado</h2>
+    <div class="placar">
+        <span class="placar-numero">{{ partida.acertos }}/{{ partida.total }}</span>
+        <span class="texto-suave">{{ percentual }}% de acerto · {{ mensagem }}</span>
+    </div>
+    <ol class="resumo-respostas">
+        {% for r in partida.respostas %}
+        <li>
+            <span class="marca {{ 'acerto' if r.acertou else 'erro' }}">{{ '✓' if r.acertou else '✗' }}</span>
+            <span>{{ r.enunciado }}</span>
+        </li>
+        {% endfor %}
+    </ol>
+    <div class="acoes acoes-centro">
+        <a href="{{ url_for('menu.inicio') }}" class="botao botao-secundario">Voltar ao menu</a>
+        <a href="{{ url_for('jogo.iniciar') }}" class="botao botao-primario">Jogar novamente</a>
+    </div>
+</section>
+{% endblock %}
