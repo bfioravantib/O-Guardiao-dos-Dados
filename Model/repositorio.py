@@ -28,7 +28,7 @@ def obter_pergunta(pergunta_id):
 
 
 def contar_perguntas():
-    return obter().execute('SELECT COUNT(*) FROM perguntas').fetchone()[0]
+    return obter().execute('SELECT COUNT(*) AS total FROM perguntas').fetchone()['total']
 
 
 def salvar_pergunta(enunciado, alternativas, correta, comentario, pergunta_id=None):
@@ -66,11 +66,11 @@ def registrar_partida(respostas):
     """Grava uma partida. Cada resposta: {pergunta_id, enunciado, escolhida, correta}. Retorna o id da partida."""
     conexao = obter()
     acertos = sum(1 for r in respostas if r['escolhida'] == r['correta'])
-    cursor = conexao.execute(
-        'INSERT INTO partidas (data, total, acertos) VALUES (?, ?, ?)',
+    # RETURNING id funciona no SQLite e no PostgreSQL (lastrowid só existe no SQLite).
+    partida_id = conexao.execute(
+        'INSERT INTO partidas (data, total, acertos) VALUES (?, ?, ?) RETURNING id',
         (datetime.now().isoformat(timespec='seconds'), len(respostas), acertos),
-    )
-    partida_id = cursor.lastrowid
+    ).fetchone()['id']
     conexao.executemany(
         'INSERT INTO respostas (partida_id, pergunta_id, enunciado, escolhida, correta) VALUES (?, ?, ?, ?, ?)',
         [(partida_id, r['pergunta_id'], r['enunciado'], r['escolhida'], r['correta']) for r in respostas],
@@ -130,7 +130,7 @@ def desempenho_por_pergunta():
             {'enunciado': linha['enunciado'], 'vezes': 0, 'acertos': 0, 'excluida': True},
         )
         est['vezes'] += 1
-        est['acertos'] += linha['acertou']
+        est['acertos'] += int(linha['acertou'])  # PostgreSQL devolve booleano; SQLite, 0/1
     return list(estatisticas.values())
 
 

@@ -32,5 +32,8 @@ def criar_app():
     return app
 
 
+# Instância no nível do módulo: usada pelo Vercel (e por servidores WSGI como gunicorn).
+app = criar_app()
+
 if __name__ == '__main__':
-    criar_app().run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
