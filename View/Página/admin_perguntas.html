@@ -3,13 +3,13 @@
 {% block admin_conteudo %}
 <div class="cartao">
     <div class="cabecalho-secao">
-        <h3>Perguntas cadastradas</h3>
+        <h3 class="titulo-epico">Provações Cadastradas</h3>
         <div class="acoes">
             <form method="post" action="{{ url_for('admin.restaurar_perguntas') }}"
-                  onsubmit="return confirm('Substituir todas as perguntas atuais pelas 5 perguntas de exemplo?')">
-                <button type="submit" class="botao botao-secundario botao-pequeno">Restaurar exemplos</button>
+                  onsubmit="return confirm('Substituir todas as perguntas atuais pelas 5 provações padrão de Segurança e LGPD?')">
+                <button type="submit" class="botao botao-secundario botao-pequeno">Restaurar provações padrão</button>
             </form>
-            <a href="{{ url_for('admin.nova_pergunta') }}" class="botao botao-primario botao-pequeno">+ Nova pergunta</a>
+            <a href="{{ url_for('admin.nova_pergunta') }}" class="botao botao-primario botao-pequeno">+ Nova provação</a>
         </div>
     </div>
 

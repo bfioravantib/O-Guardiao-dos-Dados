@@ -20,6 +20,8 @@ def criar_app():
     )
     # Sem QUIZ_SECRET_KEY definida, uma chave aleatória é gerada a cada início (sessões abertas se perdem ao reiniciar).
     app.config['SECRET_KEY'] = os.environ.get('QUIZ_SECRET_KEY') or secrets.token_hex(32)
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
     banco.inicializar()
     app.teardown_appcontext(banco.fechar)
@@ -31,4 +33,4 @@ def criar_app():
 
 
 if __name__ == '__main__':
-    criar_app().run(host='127.0.0.1', port=5000)
+    criar_app().run(host='127.0.0.1', port=5000, debug=True)

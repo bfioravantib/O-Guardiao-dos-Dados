@@ -1,11 +1,13 @@
 {% extends 'base.html' %}
+{% from '_guardiao.html' import guardiao_svg %}
 
-{% block titulo %}Quiz · Jogar{% endblock %}
+{% block titulo %}O Guardião dos Dados · Jogar{% endblock %}
 
 {% block conteudo %}
 <section class="cartao centro">
-    <h2>Nenhuma pergunta cadastrada</h2>
-    <p class="texto-suave">Cadastre perguntas na área administrativa para começar.</p>
+    {{ guardiao_svg('alerta', 'guardiao-destaque') }}
+    <h2 class="titulo-epico">Grimório Vazio</h2>
+    <p class="texto-suave">Ainda não há provações cadastradas na área administrativa para começar a jornada.</p>
     <div class="acoes acoes-centro">
         <a href="{{ url_for('menu.inicio') }}" class="botao botao-primario">Voltar ao menu</a>
     </div>

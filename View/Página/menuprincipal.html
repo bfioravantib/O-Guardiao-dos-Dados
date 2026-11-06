@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_guardiao.html' import guardiao_fundo_menu, titulo_medieval %}
 
 {% block classe_body %}tela-menu{% endblock %}
 
@@ -9,18 +10,24 @@
     </svg>
 </a>
 
-<main class="cartao cartao-menu">
-    <div class="logo" aria-hidden="true">?</div>
-    <h1>Quiz</h1>
-    <p class="subtitulo">Teste seus conhecimentos respondendo às perguntas a seguir.</p>
-    {% if total_perguntas %}
-        <a class="botao botao-primario botao-grande" href="{{ url_for('jogo.iniciar') }}">Jogar</a>
-        <p class="info-perguntas texto-suave">
-            {{ total_perguntas }} {{ 'pergunta disponível' if total_perguntas == 1 else 'perguntas disponíveis' }}
+<div class="palco-menu">
+    {{ guardiao_fundo_menu() }}
+
+    <main class="cartao cartao-menu">
+        <span class="insignia-ordem">Ordem da Cibersegurança &amp; LGPD</span>
+        {{ titulo_medieval() }}
+        <p class="fala-menu">
+            &ldquo;Saudações, viajante! Cinco provações aguardam você na Cidadela. Mostre sua sabedoria sobre Segurança da Informação e proteção de dados!&rdquo;
         </p>
-    {% else %}
-        <span class="botao botao-primario botao-grande desabilitado" aria-disabled="true">Jogar</span>
-        <p class="info-perguntas texto-suave">Nenhuma pergunta cadastrada.</p>
-    {% endif %}
-</main>
+        {% if total_perguntas %}
+            <a class="botao botao-primario botao-grande" href="{{ url_for('jogo.iniciar') }}">Iniciar Provação</a>
+            <p class="info-perguntas texto-suave">
+                ⚔️ {{ total_perguntas }} {{ 'provação disponível' if total_perguntas == 1 else 'provações disponíveis' }}
+            </p>
+        {% else %}
+            <span class="botao botao-primario botao-grande desabilitado" aria-disabled="true">Iniciar Provação</span>
+            <p class="info-perguntas texto-suave">Nenhuma pergunta cadastrada no grimório.</p>
+        {% endif %}
+    </main>
+</div>
 {% endblock %}

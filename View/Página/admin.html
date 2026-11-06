@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Quiz · Administração{% endblock %}
-{% block topo_titulo %}Área administrativa{% endblock %}
+{% block titulo %}O Guardião dos Dados · Administração{% endblock %}
+{% block topo_titulo %}⚜️ Conselho da Cidadela · Administração{% endblock %}
 {% block topo_direita %}<a href="{{ url_for('admin.sair') }}" class="link-voltar">Sair</a>{% endblock %}
 
 {% block conteudo %}
 <nav class="abas">
-    <a href="{{ url_for('admin.respostas') }}" class="aba {{ 'ativa' if request.endpoint == 'admin.respostas' }}">Respostas</a>
-    <a href="{{ url_for('admin.perguntas') }}" class="aba {{ 'ativa' if request.endpoint != 'admin.respostas' }}">Perguntas</a>
+    <a href="{{ url_for('admin.respostas') }}" class="aba {{ 'ativa' if request.endpoint == 'admin.respostas' }}">📜 Histórico de Partidas</a>
+    <a href="{{ url_for('admin.perguntas') }}" class="aba {{ 'ativa' if request.endpoint != 'admin.respostas' }}">⚔️ Grimório de Perguntas</a>
 </nav>
 {% block admin_conteudo %}{% endblock %}
 {% endblock %}

@@ -1,4 +1,4 @@
-# Quiz
+# O Guardião dos Dados
 
 Quiz de perguntas e respostas em Python (Flask + SQLite), organizado em Model / View / Controller.
 

@@ -4,13 +4,13 @@
 
 {% block admin_conteudo %}
 <div class="indicadores">
-    <div class="indicador"><span class="indicador-valor">{{ resumo.partidas }}</span><span class="indicador-rotulo">Partidas</span></div>
-    <div class="indicador"><span class="indicador-valor">{{ resumo.respostas }}</span><span class="indicador-rotulo">Respostas</span></div>
-    <div class="indicador"><span class="indicador-valor">{{ percentual(resumo.acertos, resumo.respostas) }}</span><span class="indicador-rotulo">Taxa de acerto</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ resumo.partidas }}</span><span class="indicador-rotulo">Jornadas Concluídas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ resumo.respostas }}</span><span class="indicador-rotulo">Provações Respondidas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(resumo.acertos, resumo.respostas) }}</span><span class="indicador-rotulo">Taxa de Precisão</span></div>
 </div>
 
 <div class="cartao">
-    <h3>Desempenho por pergunta</h3>
+    <h3 class="titulo-epico">Desempenho por Provação</h3>
     <div class="tabela-rolagem">
         <table class="tabela">
             <thead>
@@ -40,7 +40,7 @@
 
 <div class="cartao">
     <div class="cabecalho-secao">
-        <h3>Histórico de partidas</h3>
+        <h3 class="titulo-epico">Histórico de Jornadas</h3>
         {% if partidas %}
         <form method="post" action="{{ url_for('admin.limpar_respostas') }}"
               onsubmit="return confirm('Apagar todo o histórico de partidas? Esta ação não pode ser desfeita.')">

@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Quiz · Administração{% endblock %}
-{% block topo_titulo %}Área administrativa{% endblock %}
+{% block titulo %}O Guardião dos Dados · Administração{% endblock %}
+{% block topo_titulo %}⚜️ Conselho da Cidadela{% endblock %}
 
 {% block conteudo %}
 <section class="cartao cartao-estreito">
-    <h2>Acesso restrito</h2>
+    <h2 class="titulo-epico">Acesso Restrito</h2>
+    <p class="texto-suave">Informe a chave do Mestre Guardião para acessar os registros.</p>
     <form method="post">
         <label class="campo">
-            <span>PIN</span>
+            <span>PIN de Acesso</span>
             <input type="password" name="pin" inputmode="numeric" autocomplete="off" required autofocus>
         </label>
         {% if erro %}<p class="texto-erro">PIN incorreto.</p>{% endif %}

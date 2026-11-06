@@ -1,0 +1,318 @@
+{# Macros do personagem caricato "O Guardião dos Dados" e elementos épicos medievais #}
+
+{% macro guardiao_svg(humor='indagando', classe='') %}
+<div class="guardiao-retrato guardiao-{{ humor }} {{ classe }}" aria-hidden="true">
+    <svg viewBox="0 0 180 180" class="guardiao-ilustracao" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient id="aura-{{ humor }}" cx="50%" cy="45%" r="50%">
+                {% if humor == 'orgulhoso' %}
+                <stop offset="0%" stop-color="#34d399" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+                {% elif humor == 'alerta' %}
+                <stop offset="0%" stop-color="#f87171" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+                {% else %}
+                <stop offset="0%" stop-color="#f5c451" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                {% endif %}
+            </radialGradient>
+            <linearGradient id="armadura" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2e6f8e"/>
+                <stop offset="100%" stop-color="#173d52"/>
+            </linearGradient>
+            <linearGradient id="ouro" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#f9db78"/>
+                <stop offset="50%" stop-color="#d49b27"/>
+                <stop offset="100%" stop-color="#9e6d10"/>
+            </linearGradient>
+            <linearGradient id="cristal" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7dd3fc"/>
+                <stop offset="100%" stop-color="#0284c7"/>
+            </linearGradient>
+        </defs>
+
+        <!-- Fundo circular do medalhão -->
+        <circle cx="90" cy="90" r="82" fill="#102534"/>
+        <circle cx="90" cy="90" r="78" fill="url(#aura-{{ humor }})"/>
+
+        <!-- Runas / partículas de dados ao fundo -->
+        <g fill="#7dd3fc" opacity="0.35" font-family="monospace" font-weight="bold" font-size="10">
+            <text x="24" y="52">01</text>
+            <text x="142" y="48">10</text>
+            <text x="20" y="115">§</text>
+        </g>
+
+        <!-- Capa vermelha/vinho épica -->
+        <path d="M35 162 C38 118, 142 118, 145 162 Z" fill="#7c1d26" stroke="#4c0f15" stroke-width="2"/>
+
+        <!-- Ombreiras e Armadura Peitoral -->
+        <path d="M40 164 C44 126, 136 126, 140 164 Z" fill="url(#armadura)" stroke="#0f2938" stroke-width="2.5"/>
+        <!-- Ombreiras douradas -->
+        <path d="M32 146 Q46 120 68 132 L62 152 Q42 152 32 146 Z" fill="url(#ouro)" stroke="#5c3d04" stroke-width="2"/>
+        <path d="M148 146 Q134 120 112 132 L118 152 Q138 152 148 146 Z" fill="url(#ouro)" stroke="#5c3d04" stroke-width="2"/>
+        <!-- Emblema peitoral -->
+        <polygon points="90,128 100,140 90,154 80,140" fill="url(#ouro)" stroke="#5c3d04" stroke-width="1.5"/>
+        <polygon points="90,132 96,140 90,149 84,140" fill="url(#cristal)"/>
+
+        <!-- Pluma do Elmo -->
+        <path d="M90 10 C112 6, 128 22, 118 40 C108 32, 98 28, 90 30 C82 28, 72 32, 62 40 C52 22, 68 6, 90 10 Z"
+              fill="#b91c1c" stroke="#7f1d1d" stroke-width="2"/>
+        <path d="M90 14 C105 12, 115 22, 110 34 C100 28, 90 27, 90 27 Z" fill="#ef4444" opacity="0.6"/>
+
+        <!-- Cabeça / Rosto Caricato -->
+        <rect x="61" y="54" width="58" height="62" rx="26" fill="#f6CBA3" stroke="#b47b4e" stroke-width="2"/>
+        <!-- Orelhas -->
+        <circle cx="59" cy="86" r="7" fill="#eab68c" stroke="#b47b4e" stroke-width="2"/>
+        <circle cx="121" cy="86" r="7" fill="#eab68c" stroke="#b47b4e" stroke-width="2"/>
+
+        <!-- Elmo de Guardião (Topo e Abas Laterais) -->
+        <path d="M55 72 C55 38, 125 38, 125 72 L120 64 C105 55, 75 55, 60 64 Z"
+              fill="url(#armadura)" stroke="#0f2938" stroke-width="2.5"/>
+        <!-- Coroa / Adorno Dourado do Elmo -->
+        <path d="M56 68 Q90 54 124 68 L121 75 Q90 62 59 75 Z" fill="url(#ouro)" stroke="#5c3d04" stroke-width="1.8"/>
+        <!-- Cristal da Mente / Sabedoria no centro do elmo -->
+        <polygon points="90,46 98,58 90,70 82,58" fill="url(#ouro)" stroke="#5c3d04" stroke-width="1.5"/>
+        <polygon points="90,49 95,58 90,66 85,58" fill="url(#cristal)"/>
+
+        <!-- Olhos e Expressões Dinâmicas -->
+        {% if humor == 'orgulhoso' %}
+            <path d="M70 83 Q77 75 84 83" fill="none" stroke="#1e293b" stroke-width="3.2" stroke-linecap="round"/>
+            <path d="M96 83 Q103 75 110 83" fill="none" stroke="#1e293b" stroke-width="3.2" stroke-linecap="round"/>
+            <path d="M67 74 Q77 69 85 74" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+            <path d="M95 74 Q103 69 113 74" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+        {% elif humor == 'alerta' %}
+            <circle cx="77" cy="83" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+            <circle cx="103" cy="83" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+            <circle cx="77" cy="83" r="2.8" fill="#0f172a"/>
+            <circle cx="103" cy="83" r="2.8" fill="#0f172a"/>
+            <path d="M67 73 L85 78" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+            <path d="M113 73 L95 78" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+        {% elif humor == 'indagando' %}
+            <circle cx="77" cy="83" r="5" fill="#1e293b"/>
+            <circle cx="103" cy="83" r="5" fill="#1e293b"/>
+            <circle cx="75.5" cy="81" r="1.8" fill="#ffffff"/>
+            <circle cx="101.5" cy="81" r="1.8" fill="#ffffff"/>
+            <path d="M67 76 Q77 74 85 77" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+            <path d="M95 75 Q104 67 113 73" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+        {% else %}
+            <circle cx="77" cy="83" r="5" fill="#1e293b"/>
+            <circle cx="103" cy="83" r="5" fill="#1e293b"/>
+            <circle cx="75.5" cy="81" r="1.8" fill="#ffffff"/>
+            <circle cx="101.5" cy="81" r="1.8" fill="#ffffff"/>
+            <path d="M67 75 Q77 71 85 75" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+            <path d="M95 75 Q103 71 113 75" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+        {% endif %}
+
+        <!-- Nariz caricato -->
+        <ellipse cx="90" cy="90" rx="5.5" ry="4.5" fill="#dfa074" stroke="#b47b4e" stroke-width="1.5"/>
+
+        <!-- Barba e Bigode volumosos de Mestre Guardião -->
+        <path d="M58 94 C56 122, 74 138, 90 140 C106 138, 124 122, 122 94 C114 100, 102 102, 90 102 C78 102, 66 100, 58 94 Z"
+              fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+        <path d="M90 95 C78 92, 66 103, 55 98 C62 109, 78 108, 90 102 C102 108, 118 109, 125 98 C114 103, 102 92, 90 95 Z"
+              fill="#f1f5f9" stroke="#64748b" stroke-width="2"/>
+
+        <!-- Boca / Sorriso visível sob o bigode -->
+        {% if humor == 'alerta' %}
+            <ellipse cx="90" cy="107" rx="5" ry="3.5" fill="#7f1d1d"/>
+        {% else %}
+            <path d="M82 104 Q90 112 98 104" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+        {% endif %}
+
+        <!-- Escudo da LGPD (Canto inferior direito) -->
+        <g transform="translate(116, 104)">
+            <path d="M22 4 L42 10 L42 28 C42 42, 32 50, 22 55 C12 50, 2 42, 2 28 L2 10 Z"
+                  fill="url(#armadura)" stroke="url(#ouro)" stroke-width="3.5"/>
+            <rect x="15" y="25" width="14" height="12" rx="2.5" fill="url(#ouro)"/>
+            <path d="M18 25 V20 A4 4 0 0 1 26 20 V25" fill="none" stroke="url(#ouro)" stroke-width="2.8"/>
+            <circle cx="22" cy="30" r="1.8" fill="#102534"/>
+        </g>
+
+        <!-- Pergaminho / Grimório na mão esquerda -->
+        <g transform="translate(14, 112) rotate(-12)">
+            <rect x="4" y="6" width="28" height="36" rx="4" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+            <line x1="10" y1="15" x2="26" y2="15" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+            <line x1="10" y1="22" x2="26" y2="22" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+            <line x1="10" y1="29" x2="20" y2="29" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+        </g>
+
+        <!-- Moldura de anel dourado externo -->
+        <circle cx="90" cy="90" r="82" fill="none" stroke="url(#ouro)" stroke-width="5"/>
+        <circle cx="90" cy="90" r="77" fill="none" stroke="#fde68a" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+    </svg>
+</div>
+{% endmacro %}
+
+
+{# Ilustração gigante do Guardião no fundo/topo da tela inicial #}
+{% macro guardiao_fundo_menu() %}
+<div class="cenario-guardiao-fundo" aria-hidden="true">
+    <svg viewBox="0 0 900 440" class="svg-fundo-guardiao" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <radialGradient id="halo-epico" cx="50%" cy="55%" r="50%">
+                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.45"/>
+                <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="#091722" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="ouro-fundo" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fde68a"/>
+                <stop offset="50%" stop-color="#d49b27"/>
+                <stop offset="100%" stop-color="#784d06"/>
+            </linearGradient>
+            <linearGradient id="armadura-fundo" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2c6e8f"/>
+                <stop offset="50%" stop-color="#1b4960"/>
+                <stop offset="100%" stop-color="#0d2533"/>
+            </linearGradient>
+            <linearGradient id="capa-fundo" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#991b1b"/>
+                <stop offset="100%" stop-color="#450a0a"/>
+            </linearGradient>
+            <linearGradient id="cristal-fundo" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#bae6fd"/>
+                <stop offset="50%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#0369a1"/>
+            </linearGradient>
+        </defs>
+
+        <!-- Halo Mágico e Círculo Rúnico da Cidadela -->
+        <circle cx="450" cy="240" r="280" fill="url(#halo-epico)"/>
+        <circle cx="450" cy="240" r="215" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="10 8" opacity="0.38"/>
+        <circle cx="450" cy="240" r="245" fill="none" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="4 12" opacity="0.3"/>
+
+        <!-- Torres Medievais da Cidadela nas laterais -->
+        <path d="M10 440 L10 220 L55 220 L55 170 L75 170 L75 195 L95 195 L95 170 L115 170 L115 250 L165 250 L165 440 Z" fill="#07131d" opacity="0.75"/>
+        <path d="M890 440 L890 220 L845 220 L845 170 L825 170 L825 195 L805 195 L805 170 L785 170 L785 250 L735 250 L735 440 Z" fill="#07131d" opacity="0.75"/>
+
+        <!-- Cajado / Alabarda dos Dados (Mão Esquerda do Guardião) -->
+        <g transform="translate(185, 25) rotate(-10)">
+            <rect x="44" y="85" width="12" height="380" rx="5" fill="#5c3d04" stroke="#2e1d02" stroke-width="2"/>
+            <path d="M20 100 C20 40, 80 40, 80 100 L65 115 L35 115 Z" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="2.5"/>
+            <polygon points="50,25 72,65 50,105 28,65" fill="url(#cristal-fundo)" stroke="#bae6fd" stroke-width="2"/>
+            <circle cx="50" cy="65" r="46" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.55"/>
+        </g>
+
+        <!-- Grande Capa Real Esvoaçante -->
+        <path d="M190 440 C215 290, 310 230, 450 230 C590 230, 685 290, 710 440 Z"
+              fill="url(#capa-fundo)" stroke="#2a0505" stroke-width="4"/>
+
+        <!-- Corpo / Armadura Peitoral Gigante -->
+        <path d="M245 440 C265 310, 345 255, 450 255 C555 255, 635 310, 655 440 Z"
+              fill="url(#armadura-fundo)" stroke="#091924" stroke-width="4"/>
+
+        <!-- Ombreiras Épicas Douradas -->
+        <path d="M195 375 Q255 250 365 285 L342 390 Q255 395 195 375 Z"
+              fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="3.5"/>
+        <path d="M705 375 Q645 250 535 285 L558 390 Q645 395 705 375 Z"
+              fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="3.5"/>
+
+        <!-- Brasão Peitoral -->
+        <polygon points="450,295 490,345 450,400 410,345" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="3"/>
+        <polygon points="450,310 476,345 450,384 424,345" fill="url(#cristal-fundo)"/>
+
+        <!-- Grande Pluma Vermelha do Elmo -->
+        <path d="M450 12 C520 0, 570 48, 538 104 C505 80, 476 70, 450 76 C424 70, 395 80, 362 104 C330 48, 380 0, 450 12 Z"
+              fill="#b91c1c" stroke="#450a0a" stroke-width="3.5"/>
+        <path d="M450 22 C500 15, 532 45, 515 84 C485 66, 450 64, 450 64 Z" fill="#f87171" opacity="0.45"/>
+
+        <!-- Cabeça e Rosto do Guardião -->
+        <rect x="364" y="122" width="172" height="176" rx="76" fill="#f6cba3" stroke="#9c6334" stroke-width="3.5"/>
+        <circle cx="358" cy="212" r="18" fill="#eab68c" stroke="#9c6334" stroke-width="3.5"/>
+        <circle cx="542" cy="212" r="18" fill="#eab68c" stroke="#9c6334" stroke-width="3.5"/>
+
+        <!-- Elmo Medieval Alado -->
+        <path d="M346 182 C346 80, 554 80, 554 182 L538 158 C494 132, 406 132, 362 158 Z"
+              fill="url(#armadura-fundo)" stroke="#091924" stroke-width="4"/>
+        <!-- Asas laterais do Elmo -->
+        <path d="M346 168 L296 114 L312 175 L290 165 L330 200 Z" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="2.5"/>
+        <path d="M554 168 L604 114 L588 175 L610 165 L570 200 Z" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="2.5"/>
+
+        <!-- Coroa Frontal do Elmo -->
+        <path d="M350 168 Q450 126 550 168 L540 190 Q450 150 360 190 Z"
+              fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="3"/>
+        <polygon points="450,104 474,140 450,176 426,140" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="2.5"/>
+        <polygon points="450,114 466,140 450,166 434,140" fill="url(#cristal-fundo)"/>
+
+        <!-- Olhos Expressivos e Sobrancelhas Brancas -->
+        <circle cx="410" cy="206" r="13" fill="#1e293b"/>
+        <circle cx="490" cy="206" r="13" fill="#1e293b"/>
+        <circle cx="406" cy="201" r="4.5" fill="#ffffff"/>
+        <circle cx="486" cy="201" r="4.5" fill="#ffffff"/>
+        <path d="M380 185 Q410 172 434 185" fill="none" stroke="#f1f5f9" stroke-width="10" stroke-linecap="round"/>
+        <path d="M466 185 Q490 172 520 185" fill="none" stroke="#f1f5f9" stroke-width="10" stroke-linecap="round"/>
+
+        <!-- Nariz -->
+        <ellipse cx="450" cy="225" rx="16" ry="12" fill="#dfa074" stroke="#9c6334" stroke-width="3"/>
+
+        <!-- Grande Barba e Bigode Épico -->
+        <path d="M354 238 C346 325, 400 380, 450 390 C500 380, 554 325, 546 238 C522 254, 486 260, 450 260 C414 260, 378 254, 354 238 Z"
+              fill="#cbd5e1" stroke="#475569" stroke-width="3.5"/>
+        <path d="M450 240 C414 230, 378 264, 344 248 C365 282, 414 278, 450 260 C486 278, 535 282, 556 248 C522 264, 486 230, 450 240 Z"
+              fill="#f8fafc" stroke="#475569" stroke-width="3.5"/>
+        <path d="M426 268 Q450 288 474 268" fill="none" stroke="#334155" stroke-width="4.5" stroke-linecap="round"/>
+
+        <!-- Escudo Monumental da LGPD (Lado Direito) -->
+        <g transform="translate(565, 225) rotate(6)">
+            <path d="M85 8 L160 30 L160 105 C160 162, 122 195, 85 215 C48 195, 10 162, 10 105 L10 30 Z"
+                  fill="url(#armadura-fundo)" stroke="url(#ouro-fundo)" stroke-width="9"/>
+            <path d="M85 24 L146 42 L146 102 C146 148, 114 176, 85 194 C56 176, 24 148, 24 102 L24 42 Z"
+                  fill="none" stroke="#fde68a" stroke-width="2" stroke-dasharray="6 6" opacity="0.6"/>
+            <rect x="58" y="94" width="54" height="46" rx="8" fill="url(#ouro-fundo)" stroke="#422c03" stroke-width="2.5"/>
+            <path d="M69 94 V75 A16 16 0 0 1 101 75 V94" fill="none" stroke="url(#ouro-fundo)" stroke-width="10"/>
+            <circle cx="85" cy="113" r="6" fill="#0f2230"/>
+            <rect x="82.5" y="116" width="5" height="12" rx="2" fill="#0f2230"/>
+        </g>
+    </svg>
+</div>
+{% endmacro %}
+
+
+{# Emblema / Brasão Medieval Estilizado para "O Guardião dos Dados" #}
+{% macro titulo_medieval() %}
+<div class="emblema-titulo-medieval">
+    <h1 class="sr-only">O Guardião dos Dados</h1>
+    <svg viewBox="0 0 420 130" class="svg-titulo-medieval" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="ouro-texto" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#fffbeb"/>
+                <stop offset="35%" stop-color="#facc15"/>
+                <stop offset="75%" stop-color="#ca8a04"/>
+                <stop offset="100%" stop-color="#713f12"/>
+            </linearGradient>
+            <linearGradient id="faixa-vinho" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#580f16"/>
+                <stop offset="50%" stop-color="#881b24"/>
+                <stop offset="100%" stop-color="#580f16"/>
+            </linearGradient>
+            <linearGradient id="placa-escura" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#173d52"/>
+                <stop offset="100%" stop-color="#0b1f2c"/>
+            </linearGradient>
+        </defs>
+
+        <!-- Placa Heráldica Principal -->
+        <polygon points="24,48 396,48 412,82 396,116 24,116 8,82"
+                 fill="url(#placa-escura)" stroke="url(#ouro-texto)" stroke-width="4"/>
+        <polygon points="30,54 390,54 404,82 390,110 30,110 16,82"
+                 fill="none" stroke="#fde68a" stroke-width="1" stroke-dasharray="5 4" opacity="0.55"/>
+
+        <!-- Faixa Superior em Pergaminho Vinho ("O GUARDIÃO") -->
+        <polygon points="75,12 345,12 332,30 345,48 75,48 88,30"
+                 fill="url(#faixa-vinho)" stroke="url(#ouro-texto)" stroke-width="3"/>
+
+        <!-- Cravos de Ouro nas pontas -->
+        <circle cx="28" cy="82" r="4.5" fill="url(#ouro-texto)"/>
+        <circle cx="392" cy="82" r="4.5" fill="url(#ouro-texto)"/>
+
+        <!-- Textos Medievais Esculpidos -->
+        <text x="210" y="36" text-anchor="middle" fill="#fef3c7"
+              font-family="'Cinzel', Georgia, 'Times New Roman', serif"
+              font-size="18" font-weight="800" letter-spacing="5">O GUARDIÃO</text>
+
+        <text x="210" y="96" text-anchor="middle" fill="url(#ouro-texto)"
+              stroke="#07131d" stroke-width="1.5" paint-order="stroke fill"
+              font-family="'Cinzel Decorative', 'Cinzel', Georgia, 'Times New Roman', serif"
+              font-size="38" font-weight="900" letter-spacing="3">DOS DADOS</text>
+    </svg>
+</div>
+{% endmacro %}

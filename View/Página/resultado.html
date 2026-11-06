@@ -1,16 +1,37 @@
 {% extends 'base.html' %}
+{% from '_guardiao.html' import guardiao_svg %}
 
-{% block titulo %}Quiz · Resultado{% endblock %}
-{% block topo_titulo %}Fim de jogo{% endblock %}
+{% block titulo %}O Guardião dos Dados · Resultado{% endblock %}
+{% block topo_titulo %}🏆 Fim da Jornada{% endblock %}
 {% block abaixo_topo %}<div class="progresso"><div class="progresso-barra" style="width: 100%"></div></div>{% endblock %}
 
 {% block conteudo %}
-<section class="cartao">
-    <h2 class="centro">Resultado</h2>
+{% if percentual == 100 %}
+    {% set patente = 'Mestre Guardião da LGPD' %}
+    {% set humor_final = 'orgulhoso' %}
+{% elif percentual >= 70 %}
+    {% set patente = 'Paladino da Segurança' %}
+    {% set humor_final = 'orgulhoso' %}
+{% elif percentual >= 40 %}
+    {% set patente = 'Escudeiro dos Dados' %}
+    {% set humor_final = 'saudacao' %}
+{% else %}
+    {% set patente = 'Aprendiz da Cidadela' %}
+    {% set humor_final = 'alerta' %}
+{% endif %}
+
+<section class="cartao cartao-resultado">
+    <div class="cabecalho-resultado centro">
+        {{ guardiao_svg(humor_final, 'guardiao-destaque') }}
+        <span class="insignia-ordem">Título Conquistado</span>
+        <h2 class="titulo-epico">{{ patente }}</h2>
+    </div>
+
     <div class="placar">
         <span class="placar-numero">{{ partida.acertos }}/{{ partida.total }}</span>
-        <span class="texto-suave">{{ percentual }}% de acerto · {{ mensagem }}</span>
+        <span class="texto-suave">{{ percentual }}% de precisão · {{ mensagem }}</span>
     </div>
+
     <ol class="resumo-respostas">
         {% for r in partida.respostas %}
         <li>
@@ -19,9 +40,10 @@
         </li>
         {% endfor %}
     </ol>
+
     <div class="acoes acoes-centro">
-        <a href="{{ url_for('menu.inicio') }}" class="botao botao-secundario">Voltar ao menu</a>
-        <a href="{{ url_for('jogo.iniciar') }}" class="botao botao-primario">Jogar novamente</a>
+        <a href="{{ url_for('menu.inicio') }}" class="botao botao-secundario">Voltar à Cidadela</a>
+        <a href="{{ url_for('jogo.iniciar') }}" class="botao botao-primario">Nova Jornada</a>
     </div>
 </section>
 {% endblock %}

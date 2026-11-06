@@ -1,16 +1,39 @@
 {% extends 'base.html' %}
+{% from '_guardiao.html' import guardiao_svg %}
 
-{% block titulo %}Quiz · Jogar{% endblock %}
-{% block topo_titulo %}Pergunta {{ numero }} de {{ total }}{% endblock %}
+{% block titulo %}O Guardião dos Dados · Provação {{ numero }}{% endblock %}
+{% block topo_titulo %}🛡️ Provação {{ numero }} de {{ total }}{% endblock %}
 
 {% block abaixo_topo %}
 {% set concluidas = numero if resposta else numero - 1 %}
-<div class="progresso"><div class="progresso-barra" style="width: {{ (concluidas / total * 100)|round(1) }}%"></div></div>
+<div class="progresso" role="progressbar" aria-valuenow="{{ concluidas }}" aria-valuemin="0" aria-valuemax="{{ total }}">
+    <div class="progresso-barra" style="width: {{ (concluidas / total * 100)|round(1) }}%"></div>
+</div>
 {% endblock %}
 
 {% block conteudo %}
-<section class="cartao">
-    <h2 class="enunciado">{{ pergunta.enunciado }}</h2>
+{% set acertou = (resposta and resposta.escolhida == resposta.correta) %}
+{% set humor = ('orgulhoso' if acertou else 'alerta') if resposta else 'indagando' %}
+
+<section class="cartao cartao-jogo">
+    <div class="dialogo-guardiao">
+        <div class="dialogo-avatar">
+            {{ guardiao_svg(humor, 'guardiao-dialogo') }}
+            <span class="guardiao-tag">O Guardião</span>
+        </div>
+        <div class="balao-fala">
+            <span class="balao-rotulo">
+                {% if not resposta %}
+                    📜 Provação {{ numero }} · O Guardião indaga:
+                {% elif acertou %}
+                    ✨ Defesa bem-sucedida!
+                {% else %}
+                    ⚠️ Brecha de segurança detectada!
+                {% endif %}
+            </span>
+            <h2 class="enunciado">{{ pergunta.enunciado }}</h2>
+        </div>
+    </div>
 
     <form method="post" action="{{ url_for('jogo.responder') }}">
         <ul class="alternativas">
@@ -29,18 +52,21 @@
     </form>
 
     {% if resposta %}
-    {% set acertou = resposta.escolhida == resposta.correta %}
     <div class="feedback {{ 'acerto' if acertou else 'erro' }}">
-        <p class="feedback-titulo">{{ 'Resposta correta!' if acertou else 'Resposta incorreta' }}</p>
+        <p class="feedback-titulo">
+            {{ '🛡️ Escudo Intacto! Resposta correta!' if acertou else '⚔️ Cuidado, viajante! Resposta incorreta.' }}
+        </p>
         {% if not acertou %}
-        <p class="feedback-correta">A alternativa correta é {{ letras[resposta.correta] }}: {{ pergunta.alternativas[resposta.correta] }}</p>
+        <p class="feedback-correta">A escolha sábia seria <strong>{{ letras[resposta.correta] }}</strong>: {{ pergunta.alternativas[resposta.correta] }}</p>
         {% endif %}
         <div class="comentario">
-            <span class="comentario-rotulo">Comentário</span>
+            <span class="comentario-rotulo">📖 Sabedoria do Guardião</span>
             <p>{{ pergunta.comentario }}</p>
         </div>
         <form method="post" action="{{ url_for('jogo.proxima') }}" class="acoes">
-            <button type="submit" class="botao botao-primario" autofocus>{{ 'Ver resultado' if ultima else 'Próxima' }}</button>
+            <button type="submit" class="botao botao-primario" autofocus>
+                {{ 'Concluir Jornada →' if ultima else 'Próxima Provação →' }}
+            </button>
         </form>
     </div>
     {% endif %}
