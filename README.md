@@ -6,6 +6,7 @@ Quiz de cibersegurança e LGPD em Python (Flask), com SQLite local ou PostgreSQL
 organizado em Model / View / Controller.
 
 📘 **[MANUAL.md](MANUAL.md)** explica cada arquivo, função, página e variável, e onde alterar cada coisa.
+Versão em PDF, no visual do projeto: [docs/Manual - O Guardião dos Dados.pdf](docs/Manual%20-%20O%20Guardi%C3%A3o%20dos%20Dados.pdf).
 
 ## Executar
 
@@ -64,6 +65,7 @@ perguntas cadastradas e histórico de partidas se perdem.
 - `Model/` — configuração, banco (SQLite/PostgreSQL), perguntas iniciais e repositório de dados
 - `Controller/` — rotas (menu, jogo e área administrativa), gráficos de pizza e relatórios em PDF
 - `View/Página/` — templates HTML (Jinja) · `View/Estilo/` — CSS
+- `docs/` — manual em PDF, apresentação do projeto (slides + roteiro) e os scripts que geram esses PDFs
 
 ## Autoria
 

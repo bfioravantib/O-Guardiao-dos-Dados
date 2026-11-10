@@ -1,6 +1,9 @@
 # Manual técnico — O Guardião dos Dados
 
-**Autor:** Bruno Fioravanti
+**Autor:** Bruno Fioravanti · **Projeto:** Atividade Extensionista II — Tecnologia Aplicada à Inclusão Digital
+
+> Também disponível em PDF: [docs/Manual - O Guardião dos Dados.pdf](docs/Manual%20-%20O%20Guardi%C3%A3o%20dos%20Dados.pdf)
+> (veja como atualizá-lo na [seção 12](#12-publicar-aplicar-e-documentar)).
 
 Este manual explica como o projeto está organizado, o que faz cada arquivo e cada função, e — principalmente —
 **onde mexer quando você quiser mudar alguma coisa**. Se estiver com pressa, vá direto à seção
@@ -24,7 +27,8 @@ Este manual explica como o projeto está organizado, o que faz cada arquivo e ca
 9. [Templates (View/Página)](#9-templates-viewpágina)
 10. [Estilo visual (View/Estilo/style.css)](#10-estilo-visual-viewestilostylecss)
 11. [Onde alterar cada coisa](#11-onde-alterar-cada-coisa)
-12. [Cuidados e armadilhas](#12-cuidados-e-armadilhas)
+12. [Publicar, aplicar e documentar](#12-publicar-aplicar-e-documentar)
+13. [Cuidados e armadilhas](#13-cuidados-e-armadilhas)
 
 ---
 
@@ -34,8 +38,13 @@ Este manual explica como o projeto está organizado, o que faz cada arquivo e ca
 (perguntas de 5 alternativas) de um banco de perguntas; após cada resposta o Guardião explica o assunto, e no
 final o participante recebe um título e responde à **avaliação do quiz** (validação): três notas de 1 a 10 —
 dificuldade das perguntas, facilidade de uso e relevância das informações — e uma sugestão escrita opcional.
-A participação é **anônima**: ninguém digita nome, e cada pessoa é registrada como "Jogador 1", "Jogador 2"… Uma área administrativa protegida por PIN mostra estatísticas, o histórico de jornadas, gráficos,
-relatórios em PDF, as avaliações recebidas e permite cadastrar perguntas.
+Antes da avaliação, todos veem o quadro **"Por que isso importa?"**, que liga o conteúdo aos ODS 16 e 10 e à LGPD.
+
+A participação é **anônima**: ninguém digita nome, e cada pessoa é registrada como "Jogador 1", "Jogador 2"…
+O menu explica, no quadro "Como seus dados são usados", exatamente o que é gravado.
+
+Uma área administrativa protegida por PIN mostra estatísticas, o histórico de jornadas, as avaliações recebidas,
+gráficos e relatórios em PDF, e permite cadastrar perguntas.
 
 **Como uma jornada acontece, do clique ao banco:**
 
@@ -56,7 +65,13 @@ Menu (/)  ──────▶  /jogo/  ──▶  /jogo/pergunta  ⇄  /jogo/r
   navegador (um cookie assinado). Nada vai para o banco no meio do caminho.
 - Só quando a última pergunta é concluída a jornada é gravada (tabela `partidas`) junto com cada resposta
   (tabela `respostas`). Na primeira jornada concluída o navegador recebe um número de jogador (tabela
-  `jogadores`); as próximas jornadas do mesmo navegador usam o mesmo número. É dessas duas tabelas que saem todas as estatísticas, gráficos e PDFs.
+  `jogadores`); as próximas jornadas do mesmo navegador usam o mesmo número.
+- Na tela de resultado, a avaliação enviada é gravada na tabela `avaliacoes`, ligada à jornada.
+- É dessas tabelas que saem todas as estatísticas, gráficos e PDFs da área administrativa.
+
+**O que o participante vê, em ordem:** menu (com o aviso de privacidade) → 5 perguntas, cada uma seguida da
+explicação do Guardião → resultado (título conquistado, placar, resumo e o aviso "⬇️ Sua jornada não termina
+aqui!") → quadro "Por que isso importa?" → avaliação do quiz → "Nova Jornada" ou "Voltar à Cidadela".
 
 O código segue o padrão **MVC**:
 
@@ -77,30 +92,39 @@ O código segue o padrão **MVC**:
 | **Jinja2** (vem com o Flask) | `View/Página/*.html` | Linguagem dos templates: `{{ variavel }}` imprime valores, `{% if %}`/`{% for %}` controlam o HTML, `{% extends %}` herda o layout de `base.html` e `{% macro %}` cria "componentes" reutilizáveis (Guardião, gráficos). |
 | **SQLite** (vem com o Python) | `Model/banco.py` | Banco local em arquivo (`quiz.db`), usado quando você roda no seu computador. Criado sozinho na primeira execução. |
 | **PostgreSQL / Neon** + **psycopg** | `Model/banco.py` | Banco de produção no Vercel. O Neon é um PostgreSQL na nuvem; o psycopg é a biblioteca Python que conversa com ele. Usado sempre que a variável `DATABASE_URL` existir. |
-| **ReportLab** | `Controller/relatorio_pdf.py` | Gera os relatórios em PDF (textos, tabelas, gráficos de pizza e de barras) diretamente no servidor. |
+| **ReportLab** | `Controller/relatorio_pdf.py` | Gera os três relatórios em PDF da área admin (textos, tabelas, gráficos de pizza, de barras e de colunas) diretamente no servidor. |
 | **SVG** (desenho vetorial no HTML) | `_guardiao.html`, `_graficos.html`, `graficos.py` | O personagem Guardião, o título medieval, o cenário do menu e os gráficos de pizza da tela são desenhados em SVG — não há imagens nem bibliotecas de gráficos JavaScript. |
-| **CSS** | `View/Estilo/style.css` | Todo o visual: cores, tema pergaminho, botões, layout para celular, barras dos gráficos de participantes. |
-| **JavaScript** (pequeno, embutido) | `jogo.html`, `admin_estatisticas.html` | Só dois detalhes: atalhos de teclado A–E/1–5 no jogo e a caixa "marcar todas" nas estatísticas. O site funciona sem JavaScript. |
+| **CSS** | `View/Estilo/style.css` | Todo o visual: cores, tema pergaminho, botões, layout para celular, barras e colunas dos gráficos, escala de notas 1–10. |
+| **JavaScript** (pequeno, embutido) | `base.html`, `jogo.html`, `admin_estatisticas.html`, `admin_avaliacoes.html` | Só detalhes: a janela de confirmação "⚜️ O Guardião", os atalhos de teclado A–E/1–5 no jogo, a caixa "marcar todas" nas estatísticas e o filtro de sugestões. O jogo funciona sem JavaScript. |
 | **Google Fonts** (Cinzel / Cinzel Decorative) | `base.html` | Fontes medievais dos títulos. |
 | **zoneinfo + tzdata** | `Model/config.py` | Fuso horário: grava e mostra as datas no horário de Brasília mesmo com o servidor do Vercel em UTC. O `tzdata` fornece a tabela de fusos no Windows. |
 | **Vercel** | `app.py` (variável `app`) | Hospedagem. O Vercel procura uma variável `app` no `app.py` e a executa como função *serverless*. |
+| **GitHub** | repositório `O-Guardiao-dos-Dados` | Versionamento do código; o Vercel publica a partir dele. |
+| **Markdown** + navegador (Edge/Chrome) | `docs/gerar_manual_pdf.py` | Só para gerar o PDF deste manual (não é usado pelo app). |
 
 ---
 
 ## 3. Estrutura de pastas
 
 ```
-Urna-da-Justi-a/
+O-Guardiao-dos-Dados/
 ├── app.py                    ← ponto de entrada: cria o app Flask (local e Vercel)
 ├── requirements.txt          ← bibliotecas Python necessárias
 ├── README.md                 ← como executar e publicar
 ├── MANUAL.md                 ← este manual
+├── docs/
+│   ├── Manual - O Guardião dos Dados.pdf ← este manual em PDF, no visual do projeto
+│   ├── gerar_manual_pdf.py   ← gera o PDF a partir do MANUAL.md
+│   ├── Apresentação - O Guardião dos Dados.pdf ← slides do projeto (16:9, ~10 min)
+│   ├── Roteiro da apresentação.pdf             ← o que falar em cada slide
+│   ├── gerar_apresentacao_pdf.py ← gera os dois PDFs acima (textos, dados e link ficam nele)
+│   └── apresentacao/         ← capturas de tela do quiz usadas nos slides
 ├── quiz.db                   ← banco SQLite local (criado sozinho; não vai para o GitHub)
 │
 ├── Model/
 │   ├── config.py             ← TODAS as configurações (PIN, banco, fuso, letras…)
 │   ├── banco.py              ← conexão SQLite/PostgreSQL e criação das tabelas
-│   ├── repositorio.py        ← todas as consultas: perguntas, partidas, estatísticas
+│   ├── repositorio.py        ← todas as consultas: perguntas, jogadores, partidas, avaliações
 │   └── perguntas_iniciais.py ← o banco de perguntas padrão (25)
 │
 ├── Controller/
@@ -122,10 +146,11 @@ Urna-da-Justi-a/
         ├── admin.html                ← layout da área admin (abas)
         ├── admin_estatisticas.html   ← aba Estatísticas
         ├── admin_jornadas.html       ← aba Registro de Jornadas
+        ├── admin_avaliacoes.html     ← aba Avaliações
         ├── admin_perguntas.html      ← aba Grimório de Perguntas (lista)
         ├── admin_form_pergunta.html  ← formulário de nova/editar pergunta
         ├── _guardiao.html            ← macros: personagem, cenário e título (SVG)
-        └── _graficos.html            ← macros: pizza, barras e percentual
+        └── _graficos.html            ← macros: pizza, barras, colunas de notas e percentual
 ```
 
 Arquivos que começam com `_` não são páginas: são bibliotecas de macros importadas por outras páginas.
@@ -451,15 +476,18 @@ Todas as páginas "herdam" deste arquivo com `{% extends 'base.html' %}` e preen
 | `conteudo` | O conteúdo principal da página. |
 | `scripts` | JavaScript da página, no fim do `<body>`. |
 
-Também carrega as fontes do Google e o CSS (`style.css?v=8` — veja [Cuidados](#12-cuidados-e-armadilhas)).
+Também carrega as fontes do Google e o CSS (`style.css?v=12` — veja [Cuidados](#13-cuidados-e-armadilhas)) e contém a
+**janela de confirmação "⚜️ O Guardião"** (`<dialog id="dialogo-confirmacao">` e o script logo abaixo). Todo formulário
+com o atributo `data-confirmar="mensagem"` abre essa janela antes de ser enviado; ela substitui o `confirm()` do
+navegador, cujo título ("Code" no navegador do VS Code, ou o endereço do site) não pode ser alterado.
 
 ### Páginas do jogo
 
 | Template | Elementos principais |
 |---|---|
-| [menuprincipal.html](View/Página/menuprincipal.html) | Botão de engrenagem (admin) no canto, cenário gigante do Guardião, insígnia "Ordem da Cibersegurança & LGPD", título medieval, **fala de boas-vindas** (com o número de provações vindo de `PERGUNTAS_POR_JORNADA`), botão "Iniciar Provação" e o aviso de que a participação é anônima. |
+| [menuprincipal.html](View/Página/menuprincipal.html) | Botão de engrenagem (admin) no canto, cenário gigante do Guardião, insígnia "Ordem da Cibersegurança & LGPD", título medieval, **fala de boas-vindas** (com o número de provações vindo de `PERGUNTAS_POR_JORNADA`), botão "Iniciar Provação", o aviso de que a participação é anônima e o quadro expansível **"🔒 Como seus dados são usados"** (aviso de privacidade). |
 | [jogo.html](View/Página/jogo.html) | Barra de progresso, Guardião com expressão conforme a resposta (`indagando` / `orgulhoso` / `alerta`), balão com o enunciado, botões das alternativas, feedback ("Escudo Intacto!" / "Cuidado, viajante!"), comentário "Sabedoria do Guardião" e botão de avançar. Script de atalhos A–E / 1–5. |
-| [resultado.html](View/Página/resultado.html) | Cartão "📝 Avalie sua jornada" (3 escalas de 1 a 10 e campo de sugestão; depois de enviado, mostra "Avaliação registrada"), número do jogador, **título conquistado** (patente) conforme o percentual, placar, mensagem, lista de acertos/erros e botões "Voltar à Cidadela" / "Nova Jornada". |
+| [resultado.html](View/Página/resultado.html) | De cima para baixo: número do jogador e **título conquistado** (patente) conforme o percentual; placar e mensagem; aviso **"⬇️ Sua jornada não termina aqui!"** (link que rola até o quadro seguinte; depois da avaliação enviada, deixa de convidar a avaliar); lista de acertos/erros; quadro **"🌍 Por que isso importa?"** (ODS 16, ODS 10 e LGPD); cartão **"📝 Avalie sua jornada"** (3 escalas de 1 a 10 e campo de sugestão; depois de enviado, mostra "Avaliação registrada"); botões "Voltar à Cidadela" / "Nova Jornada". |
 | [sem_perguntas.html](View/Página/sem_perguntas.html) | Aviso "Grimório Vazio" quando não há perguntas cadastradas. |
 
 ### Páginas da administração
@@ -523,6 +551,7 @@ O fundo azul da página está no seletor `body` (gradiente logo abaixo de `:root
 | Administração | Abas, indicadores, tabelas, lista de jornadas e perguntas. |
 | Formulários | Campos de texto e alternativas. |
 | `@media (max-width: 600px)` (1º) | Ajustes de celular das telas do jogo. |
+| Quadro "Por que isso importa?", aviso de privacidade e janela de confirmação | `.aviso-rolar` (aviso com seta animada; a animação é desligada para quem pede menos movimento no sistema), `.grade-importancia`, `.selo-ods` (cores oficiais dos ODS 16 e 10), `.aviso-privacidade`, `.dialogo`. |
 | Avaliação do quiz (tela de resultado) e aba Avaliações | Botões da escala 1–10 (`.escala`, `.nota`), gráficos de colunas (`.grafico-notas`, `.barra-nota`), lista de sugestões (`.item-avaliacao`) e o ajuste de celular deles. |
 | Estatísticas, gráficos de pizza e registro de jornadas | Pizzas, barras de participantes, aviso verde (`.aviso`) e, no fim, os ajustes de celular dessas telas (`@media 760px` e `600px`). |
 
@@ -552,10 +581,14 @@ O fundo azul da página está no seletor `body` (gradiente logo abaixo de `:root
 | Insígnia "Ordem da Cibersegurança & LGPD" | [menuprincipal.html linha 17](View/Página/menuprincipal.html#L17). |
 | Frases do jogo ("O Guardião indaga", "Escudo Intacto!"…) | [jogo.html](View/Página/jogo.html#L25-L58). |
 | **Títulos conquistados** (patentes) e as faixas de % | [resultado.html linhas 9–21](View/Página/resultado.html#L9-L21) (100% = Mestre, ≥70 = Paladino, ≥40 = Escudeiro, resto = Aprendiz). |
-| **Mensagem final** ("Muito bem!", "Continue praticando!") | [Controller/jogo.py, função `resultado`](Controller/jogo.py#L118). Use as mesmas faixas das patentes. |
+| **Mensagem final** ("Muito bem!", "Continue praticando!") | [Controller/jogo.py, função `_tela_resultado`](Controller/jogo.py#L125). Use as mesmas faixas das patentes. |
 | Texto das abas do admin | [admin.html](View/Página/admin.html#L10-L13). |
 | **Perguntas da avaliação** (texto, títulos dos gráficos, significado das notas 1 e 10) | [`CRITERIOS_AVALIACAO`](Model/config.py#L35) em config.py. Não mude a `chave`. |
 | Escala da avaliação (1 a 10) | [`NOTA_MAXIMA`](Model/config.py#L33). |
+| Aviso "Sua jornada não termina aqui!" (indica que há informações e a avaliação mais abaixo) | [resultado.html](View/Página/resultado.html), link `aviso-rolar`. |
+| Quadro **"Por que isso importa?"** (ODS 16, ODS 10, LGPD e a frase final) | [resultado.html](View/Página/resultado.html), seção `cartao-importancia`. |
+| **Aviso de privacidade** ("Como seus dados são usados" e o responsável pelo projeto) | [menuprincipal.html](View/Página/menuprincipal.html#L28-L42), bloco `aviso-privacidade`. Se mudar o que o app grava, atualize este texto. |
+| Título e botões da janela de confirmação | [base.html](View/Página/base.html), `<dialog id="dialogo-confirmacao">`. As mensagens ficam no `data-confirmar` de cada formulário (admin_jornadas.html e admin_perguntas.html). |
 | Textos "Avalie sua jornada", "Avaliação registrada" e do campo de sugestão | [resultado.html](View/Página/resultado.html), cartão `#avaliacao`. |
 | Texto "Sem identificação" (jornadas antigas sem rótulo) | Tela: [_graficos.html](View/Página/_graficos.html) e [admin_jornadas.html](View/Página/admin_jornadas.html); PDF: [`_rotulo_participante`](Controller/relatorio_pdf.py#L63) e `relatorio_jornadas`. |
 
@@ -576,7 +609,7 @@ Dica: no VS Code, **Ctrl+Shift+F** procurando "Guardião dos Dados" lista todos.
 | Quero mudar… | Onde |
 |---|---|
 | **Cores do site** | Variáveis no topo do [style.css](View/Estilo/style.css) (`:root`). |
-| Cores dos PDFs | Constantes no topo do [relatorio_pdf.py](Controller/relatorio_pdf.py#L21-L30) (mantenha iguais às do CSS). |
+| Cores dos PDFs | Constantes no topo do [relatorio_pdf.py](Controller/relatorio_pdf.py#L22-L31) (mantenha iguais às do CSS). |
 | Cor das colunas dos gráficos de avaliação | `.barra-nota` no style.css (tela) e `_grafico_notas` em relatorio_pdf.py (PDF). |
 | Cor das pizzas na tela | `.fatia-acertos` / `.fatia-erros` no style.css (seção de estatísticas). |
 | Cor das barras de participantes / linha da média | `.barra-preenchida`, `.barra-anonima .barra-preenchida`, `.barra-marca-media` no style.css. |
@@ -603,10 +636,66 @@ Dica: no VS Code, **Ctrl+Shift+F** procurando "Guardião dos Dados" lista todos.
 
 ---
 
-## 12. Cuidados e armadilhas
+## 12. Publicar, aplicar e documentar
+
+### Publicar no Vercel (com o banco Neon)
+
+1. No Vercel, conecte o projeto ao repositório **O-Guardiao-dos-Dados** (*Settings → Git*, ou crie um projeto
+   novo a partir dele).
+2. Em *Storage*, conecte um banco **Neon** — isso cria a variável `DATABASE_URL`.
+3. Em *Settings → Environment Variables*, defina `QUIZ_SECRET_KEY` (gere com
+   `python -c "import secrets; print(secrets.token_hex(32))"`) e `QUIZ_PIN_ADMIN` com o PIN real.
+4. Faça o deploy. As tabelas são criadas sozinhas na primeira requisição.
+5. Se o banco já existia de uma versão anterior, entre no admin → **Grimório de Perguntas → Adicionar provações
+   padrão que faltam**, para receber as perguntas novas do código.
+
+### Antes de aplicar o quiz com o público
+
+1. Teste uma jornada completa pelo celular, incluindo a avaliação.
+2. Na área admin, use **Registro de Jornadas → Limpar histórico** para apagar as jornadas de teste. A numeração
+   recomeça no "Jogador 1" e as estatísticas e avaliações ficam zeradas.
+3. Divulgue o endereço do site (ex.: por QR Code). Não é preciso instalar nada nos aparelhos dos participantes.
+4. Ao final da aplicação, exporte os três PDFs (Estatísticas, Registro de Jornadas e Avaliações): eles são a base
+   dos gráficos do relatório final.
+
+### Atualizar o PDF deste manual
+
+O arquivo `docs/Manual - O Guardião dos Dados.pdf` é gerado a partir deste `MANUAL.md`, com o visual do projeto
+(capa com o Guardião, cores e fontes do site). Depois de editar o manual, gere o PDF de novo:
+
+```powershell
+python -m pip install markdown          # só na primeira vez
+python docs/gerar_manual_pdf.py
+```
+
+O script usa o Microsoft Edge (ou o Google Chrome) instalado no computador para imprimir o PDF, e precisa de
+internet para carregar as fontes Cinzel. Ele não faz parte do app: o Vercel não o executa.
+
+### Apresentação do projeto (slides) e roteiro
+
+`docs/Apresentação - O Guardião dos Dados.pdf` tem 14 slides (16:9, cerca de 10 minutos) com a identidade visual
+do jogo: contexto, o que é segurança da informação, dados de golpes no Brasil, ODS 16, ODS 10, golpes mais comuns
+e como se prevenir, o projeto, a validação, as referências e, no final, o link do app com QR Code.
+`docs/Roteiro da apresentação.pdf` traz o texto de fala de cada slide e o tempo sugerido.
+
+Tudo vem de `docs/gerar_apresentacao_pdf.py`: os textos, números e fontes ficam na lista `SLIDES`, e o endereço do
+app em `LINK_APP`. Para mudar algo, edite o script e gere de novo:
+
+```powershell
+python -m pip install segno            # só na primeira vez (QR Code)
+python docs/gerar_apresentacao_pdf.py
+```
+
+Os dados dos gráficos são do Fórum Brasileiro de Segurança Pública (Anuários 2025 e 2026), do Cetic.br (TIC
+Domicílios 2024) e da Febraban (Pesquisa de Tecnologia Bancária 2025); as referências completas estão no slide 13.
+Se sair uma edição nova dessas pesquisas, atualize os números e as fontes juntos.
+
+---
+
+## 13. Cuidados e armadilhas
 
 - **CSS não atualiza no navegador?** Depois de editar o `style.css`, aumente o número em
-  [base.html](View/Página/base.html#L10) (`v='8'` → `v='9'`). Isso força navegadores e o Vercel a baixarem a
+  [base.html](View/Página/base.html#L10) (ex.: `v='12'` → `v='13'`). Isso força navegadores e o Vercel a baixarem a
   versão nova.
 - **Ponto e vírgula no `ESQUEMA`**: o SQL de criação é dividido em comandos pelo `;`. Não use `;` dentro dos
   comentários `--` do `ESQUEMA`, ou a criação do banco quebra.
@@ -622,3 +711,7 @@ Dica: no VS Code, **Ctrl+Shift+F** procurando "Guardião dos Dados" lista todos.
   para uso local; o Vercel não usa esse trecho.
 - **Faixas de resultado em dois lugares**: as patentes (resultado.html) e as mensagens (jogo.py) usam as mesmas
   faixas de percentual (100 / 70 / 40). Se mudar uma, mude a outra.
+- **Confirmações**: para pedir confirmação antes de enviar um formulário, use `data-confirmar="Texto da pergunta"`
+  no `<form>` (não use `onsubmit="return confirm(...)"`, que mostra a janela padrão do navegador).
+- **Aviso de privacidade**: ele descreve exatamente o que o app grava. Ao coletar um dado novo, atualize o texto em
+  `menuprincipal.html` — é o princípio da transparência da LGPD.

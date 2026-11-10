@@ -7,7 +7,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='10') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='12') }}">
     </head>
     <body class="{% block classe_body %}tela-interna{% endblock %}">
         {% block corpo %}
@@ -21,6 +21,40 @@
             {% block conteudo %}{% endblock %}
         </main>
         {% endblock %}
+
+        {# Confirmação das ações destrutivas: formulários com data-confirmar="mensagem" abrem esta janela
+           (no lugar do confirm() do navegador, cujo título não pode ser alterado). #}
+        <dialog id="dialogo-confirmacao" class="dialogo" aria-labelledby="dialogo-titulo">
+            <form method="dialog">
+                <h3 id="dialogo-titulo" class="titulo-epico">⚜️ O Guardião</h3>
+                <p id="dialogo-mensagem"></p>
+                <div class="acoes">
+                    <button value="cancelar" class="botao botao-secundario" autofocus>Cancelar</button>
+                    <button value="confirmar" class="botao botao-perigo">Confirmar</button>
+                </div>
+            </form>
+        </dialog>
+        <script>
+            (function () {
+                var dialogo = document.getElementById('dialogo-confirmacao');
+                document.addEventListener('submit', function (evento) {
+                    var formulario = evento.target;
+                    var mensagem = formulario.getAttribute('data-confirmar');
+                    if (!mensagem) return;
+                    evento.preventDefault();
+                    if (!dialogo.showModal) {  // navegador muito antigo, sem <dialog>
+                        if (window.confirm(mensagem)) formulario.submit();
+                        return;
+                    }
+                    document.getElementById('dialogo-mensagem').textContent = mensagem;
+                    dialogo.returnValue = '';
+                    dialogo.onclose = function () {
+                        if (dialogo.returnValue === 'confirmar') formulario.submit();
+                    };
+                    dialogo.showModal();
+                });
+            })();
+        </script>
         {% block scripts %}{% endblock %}
     </body>
 </html>

@@ -32,6 +32,18 @@
         <span class="texto-suave">{{ percentual }}% de precisão · {{ mensagem }}</span>
     </div>
 
+    {# Indicação para descer até o quadro "Por que isso importa?" e a avaliação (o link rola até eles). #}
+    <a href="#importancia" class="aviso-rolar">
+        <span class="seta-rolar" aria-hidden="true">⬇️</span>
+        <span>
+            {% if avaliacao %}
+            <strong>Sua jornada não termina aqui!</strong> Desça até o final da página para entender por que esse conhecimento importa.
+            {% else %}
+            <strong>Sua jornada não termina aqui!</strong> Desça até o final da página para entender por que esse conhecimento importa e <strong>avaliar o quiz</strong>.
+            {% endif %}
+        </span>
+    </a>
+
     <ol class="resumo-respostas">
         {% for r in partida.respostas %}
         <li>
@@ -40,6 +52,36 @@
         </li>
         {% endfor %}
     </ol>
+</section>
+
+{# Quadro informativo exibido a todos ao final: ligação entre segurança digital, LGPD e os ODS 16 e 10. #}
+<section class="cartao cartao-importancia" id="importancia" aria-labelledby="titulo-importancia">
+    <h3 class="titulo-epico" id="titulo-importancia">🌍 Por que isso importa?</h3>
+    <p class="texto-suave">Proteger dados pessoais não é só um cuidado individual: é parte da construção de uma sociedade mais justa.</p>
+    <div class="grade-importancia">
+        <article class="item-importancia">
+            <span class="selo-ods ods-16">ODS 16</span>
+            <h4>Paz, Justiça e Instituições Eficazes</h4>
+            <p>A meta 16.10 da ONU pede acesso público à informação e proteção das liberdades fundamentais.
+               Sem privacidade, as pessoas ficam expostas a fraudes, discriminação e abusos, e as instituições
+               perdem a confiança da sociedade.</p>
+        </article>
+        <article class="item-importancia">
+            <span class="selo-ods ods-10">ODS 10</span>
+            <h4>Redução das Desigualdades</h4>
+            <p>Quem tem menos acesso à informação fica mais vulnerável a golpes digitais. Saber reconhecer um
+               golpe e conhecer seus direitos não pode ser privilégio de poucos: informação clara e acessível
+               ajuda a diminuir essa diferença.</p>
+        </article>
+        <article class="item-importancia">
+            <span class="selo-ods selo-lei">LGPD</span>
+            <h4>Um direito de todos</h4>
+            <p>Desde 2022, a proteção dos dados pessoais é um direito fundamental previsto na Constituição
+               (art. 5º, LXXIX). A LGPD garante a você o acesso, a correção e a eliminação dos seus dados, e a
+               ANPD fiscaliza quem não cumpre a lei.</p>
+        </article>
+    </div>
+    <p class="chamada-importancia">🛡️ Compartilhe o que você aprendeu com sua família e seus amigos: a segurança de todos começa em cada um.</p>
 </section>
 
 {# Avaliação do quiz (validação do projeto). Perguntas e textos: CRITERIOS_AVALIACAO em Model/config.py. #}
