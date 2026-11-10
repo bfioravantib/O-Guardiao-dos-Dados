@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS partidas (
     data         TEXT    NOT NULL,
     total        INTEGER NOT NULL,
     acertos      INTEGER NOT NULL,
-    participante TEXT               -- nome informado no menu (NULL nas jornadas anteriores a esse campo)
+    participante TEXT               -- rótulo anônimo, ex.: "Jogador 3" (NULL nas jornadas mais antigas)
 );
 
 CREATE TABLE IF NOT EXISTS respostas (
@@ -48,6 +48,29 @@ CREATE TABLE IF NOT EXISTS respostas (
 );
 """
 COLUNA_ID = 'SERIAL PRIMARY KEY' if USA_POSTGRES else 'INTEGER PRIMARY KEY AUTOINCREMENT'
+
+# Tabelas criadas depois da primeira versão. Ficam fora do ESQUEMA porque são criadas por _atualizar_esquema(),
+# tanto em bancos novos quanto nos que já existiam (o quiz.db local e o Neon).
+TABELAS_ADICIONAIS = [
+    # Numeração anônima dos jogadores: o id gerado pelo banco é o número do "Jogador N" (sem repetir, mesmo com
+    # vários acessos simultâneos). O código aleatório fica na sessão do navegador para reconhecer o jogador nas
+    # próximas jornadas, sem guardar nenhum dado pessoal.
+    """CREATE TABLE IF NOT EXISTS jogadores (
+    id     {ID},
+    codigo TEXT NOT NULL UNIQUE
+)""",
+    # Avaliação do quiz respondida ao final da jornada (notas de 1 a 10 e sugestão opcional), no máximo uma por
+    # jornada. Apagar a jornada ("Limpar histórico") apaga a avaliação junto.
+    """CREATE TABLE IF NOT EXISTS avaliacoes (
+    id          {ID},
+    partida_id  INTEGER NOT NULL UNIQUE REFERENCES partidas(id) ON DELETE CASCADE,
+    data        TEXT    NOT NULL,
+    dificuldade INTEGER NOT NULL,
+    facilidade  INTEGER NOT NULL,
+    relevancia  INTEGER NOT NULL,
+    comentario  TEXT
+)""",
+]
 
 
 class Conexao:
@@ -107,11 +130,12 @@ def fechar(_erro=None):
         conexao.close()
 
 
-def inserir_perguntas_iniciais(conexao):
+def inserir_perguntas_iniciais(conexao, perguntas=PERGUNTAS_INICIAIS):
+    """Grava perguntas no formato de Model/perguntas_iniciais.py (por padrão, todas as de lá)."""
     conexao.executemany(
         'INSERT INTO perguntas (enunciado, alternativas, correta, comentario) VALUES (?, ?, ?, ?)',
         [(p['enunciado'], json.dumps(p['alternativas'], ensure_ascii=False), p['correta'], p['comentario'])
-         for p in PERGUNTAS_INICIAIS],
+         for p in perguntas],
     )
 
 
@@ -135,10 +159,12 @@ def _atualizar_esquema(conexao):
     """Ajustes em bancos criados por versões anteriores do app (o SQLite local e o Neon já em uso)."""
     if not _coluna_existe(conexao, 'partidas', 'participante'):
         conexao.execute('ALTER TABLE partidas ADD COLUMN participante TEXT')
+    for tabela in TABELAS_ADICIONAIS:
+        conexao.execute(tabela.format(ID=COLUNA_ID))
 
 
 def inicializar():
-    """Cria as tabelas (com as perguntas de exemplo) quando o banco ainda não existe e atualiza bancos antigos."""
+    """Cria as tabelas (com as perguntas padrão) quando o banco ainda não existe e atualiza bancos antigos."""
     with closing(conectar()) as conexao:
         if USA_POSTGRES:
             # No Vercel várias instâncias podem iniciar ao mesmo tempo: a trava evita cadastrar as perguntas duas vezes.

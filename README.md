@@ -15,7 +15,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe app.py
 ```
 
-Acesse http://127.0.0.1:5000. O banco `quiz.db` é criado na primeira execução com 5 perguntas de exemplo.
+Acesse http://127.0.0.1:5000. O banco `quiz.db` é criado na primeira execução com as 25 perguntas padrão; a cada jornada são sorteadas 5.
 
 ## Configuração (variáveis de ambiente, opcionais)
 
@@ -31,12 +31,15 @@ Acesse http://127.0.0.1:5000. O banco `quiz.db` é criado na primeira execução
 
 - **Estatísticas** — acertos, erros e taxa de acerto de cada pergunta. Marque perguntas para gerar
   gráficos de pizza (acertos x erros) na tela ou exportar o relatório em PDF com os gráficos.
-- **Registro de Jornadas** — cada conclusão do questionário, com participante, data, acertos, erros,
-  aproveitamento e as respostas dadas, além do gráfico de média por participante; também exporta PDF.
+- **Registro de Jornadas** — cada conclusão do questionário, com o jogador (anônimo: "Jogador 1", "Jogador 2"…),
+  data, acertos, erros, aproveitamento e as respostas dadas, além do gráfico de média por jogador; também exporta PDF.
+- **Avaliações** — a validação do quiz: ao final de cada jornada o participante dá notas de 1 a 10 para a
+  dificuldade das perguntas, a facilidade de uso e a relevância das informações, e pode deixar uma sugestão
+  escrita. A aba mostra as médias, gráficos da distribuição das notas e as sugestões; também exporta PDF.
 - **Grimório de Perguntas** — cadastro, edição e exclusão de perguntas.
 
 Cada resposta é gravada na tabela `respostas` (pergunta, alternativa escolhida e correta) quando a jornada
-termina; as estatísticas são calculadas a partir dela. "Limpar histórico" apaga as jornadas e, com elas,
+termina; as estatísticas são calculadas a partir dela. "Limpar histórico" apaga as jornadas e, com elas, as avaliações e
 as estatísticas.
 
 ## Deploy no Vercel
@@ -48,7 +51,9 @@ O Vercel usa a instância `app` definida em `app.py`. Em produção os dados fic
    variável `DATABASE_URL` automaticamente.
 2. Em **Settings → Environment Variables**, defina `QUIZ_SECRET_KEY` (gere com
    `python -c "import secrets; print(secrets.token_hex(32))"`) e `QUIZ_PIN_ADMIN`.
-3. Faça um novo deploy. Na primeira requisição as tabelas são criadas e as perguntas de exemplo cadastradas.
+3. Faça um novo deploy. Na primeira requisição as tabelas são criadas e as perguntas padrão cadastradas.
+   Num banco que já existia, use **Grimório de Perguntas → Adicionar provações padrão que faltam** para
+   receber perguntas novas do código.
 
 Sem `DATABASE_URL` o app ainda funciona no Vercel, mas com SQLite em `/tmp`, que é temporário:
 perguntas cadastradas e histórico de partidas se perdem.

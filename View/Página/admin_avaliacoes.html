@@ -1,0 +1,60 @@
+{% extends 'admin.html' %}
+{% from '_graficos.html' import grafico_notas, percentual %}
+
+{% block titulo %}O Guardião dos Dados · Avaliações{% endblock %}
+
+{% block admin_conteudo %}
+<div class="indicadores">
+    <div class="indicador"><span class="indicador-valor">{{ avaliacoes|length }}</span><span class="indicador-rotulo">Avaliações Recebidas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(taxa_resposta) }}</span><span class="indicador-rotulo">Jornadas Avaliadas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ com_comentario }}</span><span class="indicador-rotulo">Com Sugestão Escrita</span></div>
+</div>
+
+<div class="cartao">
+    <div class="cabecalho-secao">
+        <h3 class="titulo-epico">Notas da Validação</h3>
+        <div class="acoes">
+            <a href="{{ url_for('admin.avaliacoes_pdf') }}" class="botao botao-secundario botao-pequeno">📄 Exportar PDF</a>
+        </div>
+    </div>
+    <p class="texto-suave nota-selecao">Respostas de 1 a {{ nota_maxima }} dadas ao final de cada jornada. Cada coluna mostra quantas pessoas deram aquela nota.</p>
+    <div class="grade-avaliacoes">
+        {% for criterio in criterios %}
+        {{ grafico_notas(criterio, nota_maxima) }}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="cartao">
+    <h3 class="titulo-epico">Avaliações e Sugestões</h3>
+    <form method="get" action="{{ url_for('admin.avaliacoes') }}">
+        <label class="filtro-comentarios">
+            <input type="checkbox" name="comentarios" value="1" {{ 'checked' if so_comentarios }} onchange="this.form.submit()">
+            Mostrar só as que têm sugestão escrita
+        </label>
+        <noscript><button type="submit" class="botao botao-secundario botao-pequeno">Filtrar</button></noscript>
+    </form>
+    <ol class="lista-avaliacoes">
+        {% for a in lista %}
+        <li class="item-avaliacao">
+            <div class="cabecalho-avaliacao">
+                <span class="participante {{ 'participante-anonimo' if not a.participante }}">{{ a.participante or 'Sem identificação' }}</span>
+                <span class="data">{{ a.data.strftime('%d/%m/%Y %H:%M') }}</span>
+                <span class="notas-avaliacao">
+                    {% for c in criterios %}
+                    <span class="selo-nota" title="{{ c.titulo }}">{{ c.curto }}: <strong>{{ a[c.chave] }}</strong></span>
+                    {% endfor %}
+                </span>
+            </div>
+            {% if a.comentario %}
+            <p class="comentario-avaliacao">{{ a.comentario }}</p>
+            {% else %}
+            <p class="sem-comentario">Sem sugestão escrita.</p>
+            {% endif %}
+        </li>
+        {% else %}
+        <li class="vazio">{{ 'Nenhuma avaliação com sugestão escrita.' if so_comentarios else 'Nenhuma avaliação recebida ainda.' }}</li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}

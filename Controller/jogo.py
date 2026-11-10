@@ -1,15 +1,22 @@
 """Fluxo do jogo. O andamento da partida fica na sessão; ela só é gravada no banco ao terminar."""
+import random
+
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from Model import repositorio
-from Model.config import LETRAS, TAMANHO_MAXIMO_NOME
+from Model.config import (CRITERIOS_AVALIACAO, LETRAS, NOTA_MAXIMA, PERGUNTAS_POR_JORNADA,
+                          TAMANHO_MAXIMO_COMENTARIO)
 
 jogo_bp = Blueprint('jogo', __name__, url_prefix='/jogo')
 
 
-def _nome_participante(texto):
-    """Nome sem espaços sobrando, limitado a TAMANHO_MAXIMO_NOME caracteres."""
-    return ' '.join((texto or '').split())[:TAMANHO_MAXIMO_NOME]
+def _numero_jogador():
+    """Número anônimo do jogador deste navegador; na primeira jornada concluída ele recebe o próximo número."""
+    codigo = session.get('jogador')
+    numero = repositorio.numero_jogador(codigo) if codigo else None
+    if numero is None:
+        numero, session['jogador'] = repositorio.novo_jogador()
+    return numero
 
 
 def _pergunta_atual(jogo):
@@ -27,22 +34,19 @@ def _finalizar(jogo):
     session.pop('jogo', None)
     if not jogo['respostas']:
         return redirect(url_for('menu.inicio'))
-    session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'], jogo.get('participante'))
+    participante = repositorio.rotulo_jogador(_numero_jogador())
+    session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'], participante)
     return redirect(url_for('jogo.resultado'))
 
 
 @jogo_bp.get('/')
 def iniciar():
-    # O nome vem do formulário do menu; em "Nova Jornada" reaproveita o último nome usado.
-    participante = _nome_participante(request.args.get('participante')) or session.get('participante')
-    if not participante:
-        return redirect(url_for('menu.inicio'))
-    session['participante'] = participante
-
     ids = [p['id'] for p in repositorio.listar_perguntas()]
     if not ids:
         return render_template('sem_perguntas.html')
-    session['jogo'] = {'perguntas': ids, 'indice': 0, 'respostas': [], 'participante': participante}
+    # Sorteia as perguntas da jornada (ordem aleatória, sem repetir).
+    sorteadas = random.sample(ids, min(PERGUNTAS_POR_JORNADA, len(ids)))
+    session['jogo'] = {'perguntas': sorteadas, 'indice': 0, 'respostas': []}
     return redirect(url_for('jogo.pergunta'))
 
 
@@ -105,13 +109,21 @@ def proxima():
     return redirect(url_for('jogo.pergunta'))
 
 
+def _ultima_partida():
+    partida_id = session.get('ultima_partida')
+    return repositorio.obter_partida(partida_id) if partida_id else None
+
+
 @jogo_bp.get('/resultado')
 def resultado():
-    partida_id = session.get('ultima_partida')
-    partida = repositorio.obter_partida(partida_id) if partida_id else None
+    partida = _ultima_partida()
     if partida is None:
         return redirect(url_for('menu.inicio'))
+    return _tela_resultado(partida)
 
+
+def _tela_resultado(partida, erro=None, preenchido=None):
+    """Tela final: placar, título conquistado e o formulário de avaliação (ou o agradecimento, se já avaliou)."""
     percentual = partida['taxa']  # mesmo arredondamento do registro de jornadas
     if percentual == 100:
         mensagem = 'Perfeito! Você acertou todas.'
@@ -121,4 +133,32 @@ def resultado():
         mensagem = 'Bom resultado!'
     else:
         mensagem = 'Continue praticando!'
-    return render_template('resultado.html', partida=partida, percentual=percentual, mensagem=mensagem)
+    return render_template(
+        'resultado.html',
+        partida=partida,
+        percentual=percentual,
+        mensagem=mensagem,
+        avaliacao=repositorio.obter_avaliacao(partida['id']),
+        criterios=CRITERIOS_AVALIACAO,
+        nota_maxima=NOTA_MAXIMA,
+        tamanho_maximo_comentario=TAMANHO_MAXIMO_COMENTARIO,
+        erro=erro,
+        preenchido=preenchido or {},
+    )
+
+
+@jogo_bp.post('/avaliar')
+def avaliar():
+    """Recebe a avaliação do quiz (notas de 1 a NOTA_MAXIMA e sugestão opcional) da última jornada concluída."""
+    partida = _ultima_partida()
+    if partida is None:
+        return redirect(url_for('menu.inicio'))
+
+    notas = {c['chave']: request.form.get(c['chave'], type=int) for c in CRITERIOS_AVALIACAO}
+    comentario = (request.form.get('comentario') or '').strip()[:TAMANHO_MAXIMO_COMENTARIO]
+    if not all(nota is not None and 1 <= nota <= NOTA_MAXIMA for nota in notas.values()):
+        # Devolve a tela com o que já foi preenchido, para a pessoa não perder o comentário.
+        return _tela_resultado(partida, 'Escolha uma nota de 1 a %d em cada pergunta.' % NOTA_MAXIMA,
+                               {**notas, 'comentario': comentario}), 400
+    repositorio.registrar_avaliacao(partida['id'], notas, comentario)
+    return redirect(url_for('jogo.resultado') + '#avaliacao')

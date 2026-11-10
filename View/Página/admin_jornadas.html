@@ -25,7 +25,7 @@
             <a href="{{ url_for('admin.jornadas_pdf') }}" class="botao botao-secundario botao-pequeno">📄 Exportar PDF</a>
             {% if partidas %}
             <form method="post" action="{{ url_for('admin.limpar_jornadas') }}"
-                  onsubmit="return confirm('Apagar todo o histórico de jornadas? As estatísticas por pergunta também serão zeradas. Esta ação não pode ser desfeita.')">
+                  onsubmit="return confirm('Apagar todo o histórico de jornadas? As estatísticas por pergunta e as avaliações também serão apagadas, e a numeração dos jogadores recomeça. Esta ação não pode ser desfeita.')">
                 <button type="submit" class="botao botao-perigo botao-pequeno">Limpar histórico</button>
             </form>
             {% endif %}

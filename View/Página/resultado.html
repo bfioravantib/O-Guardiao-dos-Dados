@@ -23,7 +23,7 @@
 <section class="cartao cartao-resultado">
     <div class="cabecalho-resultado centro">
         {{ guardiao_svg(humor_final, 'guardiao-destaque') }}
-        <span class="insignia-ordem">Título Conquistado</span>
+        <span class="insignia-ordem">{{ partida.participante }} · Título Conquistado</span>
         <h2 class="titulo-epico">{{ patente }}</h2>
     </div>
 
@@ -40,10 +40,49 @@
         </li>
         {% endfor %}
     </ol>
-
-    <div class="acoes acoes-centro">
-        <a href="{{ url_for('menu.inicio') }}" class="botao botao-secundario">Voltar à Cidadela</a>
-        <a href="{{ url_for('jogo.iniciar') }}" class="botao botao-primario">Nova Jornada</a>
-    </div>
 </section>
+
+{# Avaliação do quiz (validação do projeto). Perguntas e textos: CRITERIOS_AVALIACAO em Model/config.py. #}
+<section class="cartao cartao-avaliacao" id="avaliacao">
+    {% if avaliacao %}
+    <div class="centro">
+        <h3 class="titulo-epico">📜 Avaliação registrada</h3>
+        <p class="texto-suave">Obrigado, viajante! Sua opinião ajuda a aprimorar as provações da Cidadela.</p>
+    </div>
+    {% else %}
+    <h3 class="titulo-epico">📝 Avalie sua jornada</h3>
+    <p class="texto-suave">Responda de 1 a {{ nota_maxima }}. Leva menos de um minuto e é anônimo.</p>
+    {% if erro %}<p class="texto-erro" role="alert">{{ erro }}</p>{% endif %}
+    <form method="post" action="{{ url_for('jogo.avaliar') }}" class="form-avaliacao">
+        {% for c in criterios %}
+        <fieldset class="criterio">
+            <legend>{{ loop.index }}. {{ c.pergunta }}</legend>
+            <div class="escala" role="radiogroup">
+                {% for nota in range(1, nota_maxima + 1) %}
+                <label class="nota">
+                    <input type="radio" name="{{ c.chave }}" value="{{ nota }}" required
+                           aria-label="{{ nota }} de {{ nota_maxima }}" {{ 'checked' if preenchido.get(c.chave) == nota }}>
+                    <span>{{ nota }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="escala-extremos"><span>1 · {{ c.minimo }}</span><span>{{ nota_maxima }} · {{ c.maximo }}</span></div>
+        </fieldset>
+        {% endfor %}
+        <label class="campo">
+            <span>Sugestões ou comentários <small class="texto-suave">(opcional — não escreva dados pessoais)</small></span>
+            <textarea name="comentario" rows="3" maxlength="{{ tamanho_maximo_comentario }}"
+                      placeholder="O que podemos melhorar?">{{ preenchido.get('comentario', '') }}</textarea>
+        </label>
+        <div class="acoes acoes-centro">
+            <button type="submit" class="botao botao-primario">Enviar avaliação</button>
+        </div>
+    </form>
+    {% endif %}
+</section>
+
+<div class="acoes acoes-centro acoes-final">
+    <a href="{{ url_for('menu.inicio') }}" class="botao botao-secundario">Voltar à Cidadela</a>
+    <a href="{{ url_for('jogo.iniciar') }}" class="botao botao-primario">Nova Jornada</a>
+</div>
 {% endblock %}

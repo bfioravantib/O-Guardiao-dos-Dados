@@ -1,4 +1,4 @@
-"""Relatórios em PDF (estatísticas por pergunta e registro de jornadas), com gráficos de pizza."""
+"""Relatórios em PDF (estatísticas por pergunta, registro de jornadas e avaliações do quiz), com gráficos."""
 from io import BytesIO
 from xml.sax.saxutils import escape
 
@@ -12,6 +12,7 @@ from reportlab.lib.units import cm
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import KeepTogether, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from Model.config import NOTA_MAXIMA
 from Model.repositorio import agora, percentual_acerto
 
 NOME_APP = 'O Guardião dos Dados'
@@ -297,3 +298,83 @@ def relatorio_jornadas(resumo, partidas, participantes):
     else:
         elementos.append(Paragraph('Nenhuma jornada registrada ainda.', ESTILO_NOTA))
     return _gerar('Registro de jornadas', elementos)
+
+
+# ---------- Avaliações do quiz ----------
+
+def _media_nota(media):
+    return '–' if media is None else f'{media:.1f}'.replace('.', ',')
+
+
+def _grafico_notas(criterio):
+    """Colunas com quantas avaliações deram cada nota (1 a NOTA_MAXIMA), como na aba Avaliações."""
+    largura, altura = LARGURA_UTIL, 4.6 * cm
+    base, topo = 1.1 * cm, altura - 0.9 * cm  # faixa vertical ocupada pelas colunas
+    passo = largura / NOTA_MAXIMA
+    desenho = Drawing(largura, altura)
+    desenho.add(String(0, altura - 0.45 * cm, _seguro(criterio['titulo']), fontName='Helvetica-Bold', fontSize=10,
+                       fillColor=AZUL_ESCURO))
+    desenho.add(String(largura, altura - 0.45 * cm, f"média {_media_nota(criterio['media'])}", textAnchor='end',
+                       fontName='Helvetica-Bold', fontSize=10, fillColor=AZUL))
+    maior = criterio['maior_contagem']
+    for i, qtd in enumerate(criterio['distribuicao']):
+        x = i * passo + passo * 0.15
+        largura_coluna = passo * 0.7
+        altura_coluna = (topo - base - 0.35 * cm) * qtd / maior if maior else 0
+        if qtd:
+            desenho.add(Rect(x, base, largura_coluna, altura_coluna, fillColor=AZUL, strokeColor=None))
+            desenho.add(String(x + largura_coluna / 2, base + altura_coluna + 2, str(qtd), textAnchor='middle',
+                               fontName='Helvetica', fontSize=8, fillColor=SUAVE))
+        desenho.add(String(x + largura_coluna / 2, base - 0.4 * cm, str(i + 1), textAnchor='middle',
+                           fontName='Helvetica-Bold', fontSize=8.5, fillColor=SUAVE))
+    desenho.add(Line(0, base, largura, base, strokeColor=BORDA, strokeWidth=1))
+    desenho.add(String(0, 0.05 * cm, _seguro(f"1 = {criterio['minimo']}"), fontName='Helvetica', fontSize=7.5, fillColor=SUAVE))
+    desenho.add(String(largura, 0.05 * cm, _seguro(f"{NOTA_MAXIMA} = {criterio['maximo']}"), textAnchor='end',
+                       fontName='Helvetica', fontSize=7.5, fillColor=SUAVE))
+    return desenho
+
+
+def relatorio_avaliacoes(avaliacoes, criterios, jornadas, taxa_resposta, com_comentario):
+    """PDF da validação: médias e distribuição das notas de cada critério e todas as sugestões escritas."""
+    numeros = Table(
+        [['Avaliações recebidas', str(len(avaliacoes))],
+         ['Jornadas concluídas', str(jornadas)],
+         ['Jornadas avaliadas', _percentual(taxa_resposta)],
+         ['Avaliações com sugestão escrita', str(com_comentario)]],
+        colWidths=[6 * cm, 2.4 * cm],
+    )
+    numeros.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9.5),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('LINEBELOW', (0, 0), (-1, -2), 0.5, BORDA),
+    ]))
+    elementos = [Paragraph('Visão geral', ESTILO_SECAO), numeros, Spacer(1, 10)]
+    elementos.append(_tabela_dados(
+        ['Pergunta da avaliação', f'Média (1 a {NOTA_MAXIMA})'],
+        [[Paragraph(_texto(c['pergunta']), ESTILO_CELULA), _media_nota(c['media'])] for c in criterios],
+        [13 * cm, 4 * cm], colunas_numericas=(1,),
+    ))
+
+    elementos.append(Paragraph('Distribuição das notas', ESTILO_SECAO))
+    elementos.append(Paragraph('Cada coluna mostra quantas pessoas deram aquela nota.', ESTILO_NOTA))
+    elementos.append(Spacer(1, 6))
+    for criterio in criterios:
+        elementos.append(KeepTogether([_grafico_notas(criterio), Spacer(1, 12)]))
+
+    elementos.append(Paragraph('Avaliações e sugestões', ESTILO_SECAO))
+    if avaliacoes:
+        linhas = [
+            [Paragraph(_texto(a['participante']) if a['participante'] else '<i>Sem identificação</i>', ESTILO_CELULA),
+             a['data'].strftime('%d/%m/%Y %H:%M'),
+             *(str(a[c['chave']]) for c in criterios),
+             Paragraph(_texto(a['comentario']).replace('\n', '<br/>') if a['comentario'] else '<i>—</i>', ESTILO_CELULA)]
+            for a in avaliacoes
+        ]
+        elementos.append(_tabela_dados(
+            ['Jogador', 'Data', *(c['curto'] for c in criterios), 'Sugestão'], linhas,
+            [2.4 * cm, 2.8 * cm, 2 * cm, 1.2 * cm, 1.9 * cm, 6.7 * cm], colunas_numericas=(2, 3, 4),
+        ))
+    else:
+        elementos.append(Paragraph('Nenhuma avaliação recebida ainda.', ESTILO_NOTA))
+    return _gerar('Avaliações do quiz', elementos)

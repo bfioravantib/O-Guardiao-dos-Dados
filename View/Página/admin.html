@@ -9,6 +9,7 @@
     {% set aba = request.endpoint.split('.')[-1] %}
     <a href="{{ url_for('admin.estatisticas') }}" class="aba {{ 'ativa' if aba.startswith('estatisticas') }}">📊 Estatísticas</a>
     <a href="{{ url_for('admin.jornadas') }}" class="aba {{ 'ativa' if aba.startswith('jornadas') }}">📜 Registro de Jornadas</a>
+    <a href="{{ url_for('admin.avaliacoes') }}" class="aba {{ 'ativa' if aba.startswith('avaliacoes') }}">📝 Avaliações</a>
     <a href="{{ url_for('admin.perguntas') }}" class="aba {{ 'ativa' if 'pergunta' in aba }}">⚔️ Grimório de Perguntas</a>
 </nav>
 {% block admin_conteudo %}{% endblock %}

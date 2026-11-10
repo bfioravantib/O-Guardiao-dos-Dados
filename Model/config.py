@@ -24,5 +24,19 @@ FUSO = ZoneInfo(os.environ.get('QUIZ_FUSO', 'America/Sao_Paulo'))
 LETRAS = ['A', 'B', 'C', 'D', 'E']
 QTD_ALTERNATIVAS = 5
 
-# Tamanho máximo do nome do participante (vale para o campo do menu e para o que é gravado no banco).
-TAMANHO_MAXIMO_NOME = 40
+# Quantas perguntas são sorteadas do banco a cada jornada (se houver menos cadastradas, usa todas).
+PERGUNTAS_POR_JORNADA = 5
+
+# Avaliação do quiz exibida ao final da jornada (validação): notas de 1 a NOTA_MAXIMA e um campo de sugestão.
+# A chave é a coluna da tabela "avaliacoes" (não mude); os textos podem ser alterados à vontade:
+# pergunta (tela do jogador), titulo (gráficos), curto (selos e colunas do PDF), minimo/maximo (extremos da escala).
+NOTA_MAXIMA = 10
+TAMANHO_MAXIMO_COMENTARIO = 1000
+CRITERIOS_AVALIACAO = [
+    {'chave': 'dificuldade', 'pergunta': 'Qual foi o nível de dificuldade das perguntas?',
+     'titulo': 'Dificuldade das perguntas', 'curto': 'Dificuldade', 'minimo': 'Muito fáceis', 'maximo': 'Muito difíceis'},
+    {'chave': 'facilidade', 'pergunta': 'Quão fácil foi utilizar o quiz?',
+     'titulo': 'Facilidade de uso', 'curto': 'Uso', 'minimo': 'Muito difícil', 'maximo': 'Muito fácil'},
+    {'chave': 'relevancia', 'pergunta': 'Quão relevantes foram as informações que você recebeu?',
+     'titulo': 'Relevância das informações', 'curto': 'Relevância', 'minimo': 'Nada relevantes', 'maximo': 'Muito relevantes'},
+]

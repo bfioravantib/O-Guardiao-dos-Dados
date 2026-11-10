@@ -1,9 +1,11 @@
-"""Acesso aos dados: perguntas e histórico de partidas."""
+"""Acesso aos dados: perguntas, jogadores e histórico de partidas."""
 import json
+import secrets
 from datetime import datetime, timezone
 
 from Model.banco import USA_POSTGRES, inserir_perguntas_iniciais, obter
-from Model.config import FUSO
+from Model.config import CRITERIOS_AVALIACAO, FUSO, NOTA_MAXIMA
+from Model.perguntas_iniciais import PERGUNTAS_INICIAIS
 
 
 def agora():
@@ -72,10 +74,46 @@ def excluir_pergunta(pergunta_id):
 
 
 def restaurar_perguntas_iniciais():
+    """Apaga todas as perguntas e grava as de Model/perguntas_iniciais.py."""
     conexao = obter()
     conexao.execute('DELETE FROM perguntas')
     inserir_perguntas_iniciais(conexao)
     conexao.commit()
+
+
+def adicionar_perguntas_faltantes():
+    """Grava as perguntas de Model/perguntas_iniciais.py que ainda não estão no banco (compara pelo enunciado).
+
+    Não apaga nem altera nenhuma pergunta existente. Retorna quantas foram adicionadas.
+    """
+    conexao = obter()
+    existentes = {linha['enunciado'] for linha in conexao.execute('SELECT enunciado FROM perguntas').fetchall()}
+    novas = [p for p in PERGUNTAS_INICIAIS if p['enunciado'] not in existentes]
+    if novas:
+        inserir_perguntas_iniciais(conexao, novas)
+        conexao.commit()
+    return len(novas)
+
+
+# ---------- Jogadores (identificação anônima: "Jogador 1", "Jogador 2"...) ----------
+
+def numero_jogador(codigo):
+    """Número do jogador dono deste código, ou None se o código não existe (ex.: histórico foi limpo)."""
+    linha = obter().execute('SELECT id FROM jogadores WHERE codigo = ?', (codigo,)).fetchone()
+    return linha['id'] if linha else None
+
+
+def novo_jogador():
+    """Cria um jogador. Retorna (numero, codigo): o número é sequencial e o código fica na sessão do navegador."""
+    conexao = obter()
+    codigo = secrets.token_hex(16)
+    numero = conexao.execute('INSERT INTO jogadores (codigo) VALUES (?) RETURNING id', (codigo,)).fetchone()['id']
+    conexao.commit()
+    return numero, codigo
+
+
+def rotulo_jogador(numero):
+    return f'Jogador {numero}'
 
 
 # ---------- Partidas (respostas) ----------
@@ -228,7 +266,70 @@ def estatisticas_por_pergunta():
     return lista
 
 
-def limpar_partidas():
+# ---------- Avaliações do quiz (validação, respondida ao final da jornada) ----------
+
+CHAVES_AVALIACAO = [c['chave'] for c in CRITERIOS_AVALIACAO]
+
+
+def registrar_avaliacao(partida_id, notas, comentario):
+    """Grava a avaliação de uma jornada. 'notas' tem uma nota (1 a NOTA_MAXIMA) para cada critério.
+
+    Se a jornada já foi avaliada, não grava de novo (vale a primeira avaliação).
+    """
     conexao = obter()
-    conexao.execute('DELETE FROM partidas')  # respostas são apagadas em cascata
+    conexao.execute(
+        'INSERT INTO avaliacoes (partida_id, data, dificuldade, facilidade, relevancia, comentario) '
+        'VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (partida_id) DO NOTHING',
+        (partida_id, agora().isoformat(timespec='seconds'), *(notas[c] for c in CHAVES_AVALIACAO), comentario or None),
+    )
+    conexao.commit()
+
+
+def _montar_avaliacao(linha):
+    avaliacao = {chave: linha[chave] for chave in ('id', 'partida_id', 'comentario', *CHAVES_AVALIACAO)}
+    avaliacao['data'] = _ler_data(linha['data'])
+    avaliacao['participante'] = linha['participante']
+    return avaliacao
+
+
+def obter_avaliacao(partida_id):
+    linha = obter().execute(
+        'SELECT a.*, p.participante FROM avaliacoes a JOIN partidas p ON p.id = a.partida_id WHERE a.partida_id = ?',
+        (partida_id,),
+    ).fetchone()
+    return _montar_avaliacao(linha) if linha else None
+
+
+def listar_avaliacoes():
+    """Todas as avaliações, mais recentes primeiro, com o jogador da jornada avaliada."""
+    linhas = obter().execute(
+        'SELECT a.*, p.participante FROM avaliacoes a JOIN partidas p ON p.id = a.partida_id ORDER BY a.id DESC'
+    ).fetchall()
+    return [_montar_avaliacao(linha) for linha in linhas]
+
+
+def resumo_avaliacoes(avaliacoes):
+    """Para cada critério: média (uma casa decimal) e distribuição (quantas avaliações deram cada nota)."""
+    resumo = []
+    for criterio in CRITERIOS_AVALIACAO:
+        notas = [a[criterio['chave']] for a in avaliacoes]
+        distribuicao = [notas.count(nota) for nota in range(1, NOTA_MAXIMA + 1)]
+        resumo.append({
+            **criterio,
+            'media': round(sum(notas) / len(notas), 1) if notas else None,
+            'distribuicao': distribuicao,
+            'maior_contagem': max(distribuicao),
+        })
+    return resumo
+
+
+def limpar_partidas():
+    """Apaga o histórico (jornadas, respostas e avaliações) e recomeça a numeração do "Jogador 1"."""
+    conexao = obter()
+    conexao.execute('DELETE FROM partidas')  # respostas e avaliações são apagadas em cascata
+    if USA_POSTGRES:
+        conexao.execute('TRUNCATE jogadores RESTART IDENTITY')
+    else:
+        conexao.execute('DELETE FROM jogadores')
+        conexao.execute("DELETE FROM sqlite_sequence WHERE name = 'jogadores'")
     conexao.commit()

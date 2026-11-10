@@ -55,3 +55,28 @@
     {% endif %}
 </figure>
 {% endmacro %}
+
+{# Média com uma casa decimal e vírgula ("7,4"), ou um traço quando ainda não há avaliações. #}
+{% macro media_nota(media) %}{{ '–' if media is none else ('%.1f'|format(media))|replace('.', ',') }}{% endmacro %}
+
+{# Colunas com quantas avaliações deram cada nota (1 a nota_maxima) para um critério, com a média no topo. #}
+{% macro grafico_notas(criterio, nota_maxima) %}
+<figure class="grafico-notas">
+    <figcaption>
+        <span class="grafico-titulo">{{ criterio.titulo }}</span>
+        <span class="media-nota">{{ media_nota(criterio.media) }} <small>média</small></span>
+    </figcaption>
+    <ol class="colunas-notas" role="img"
+        aria-label="{{ criterio.titulo }}: {% for qtd in criterio.distribuicao %}nota {{ loop.index }}: {{ qtd }}{{ '; ' if not loop.last }}{% endfor %}">
+        {% for qtd in criterio.distribuicao %}
+        {% set altura = (qtd / criterio.maior_contagem * 100) if criterio.maior_contagem else 0 %}
+        <li class="coluna-nota {{ 'vazia' if not qtd }}" title="Nota {{ loop.index }}: {{ qtd }} {{ 'avaliação' if qtd == 1 else 'avaliações' }}">
+            <span class="contagem">{{ qtd or '' }}</span>
+            <span class="barra-nota" style="height: {{ altura|round(1) }}%"></span>
+        </li>
+        {% endfor %}
+    </ol>
+    <ol class="rotulos-notas" aria-hidden="true">{% for nota in range(1, nota_maxima + 1) %}<li>{{ nota }}</li>{% endfor %}</ol>
+    <div class="escala-extremos"><span>{{ criterio.minimo }}</span><span>{{ criterio.maximo }}</span></div>
+</figure>
+{% endmacro %}

@@ -1,4 +1,5 @@
-"""Área administrativa: estatísticas por pergunta, registro de jornadas (com relatórios em PDF) e cadastro de perguntas."""
+"""Área administrativa: estatísticas por pergunta, registro de jornadas, avaliações do quiz (com relatórios em PDF)
+e cadastro de perguntas."""
 import hmac
 from io import BytesIO
 
@@ -7,7 +8,8 @@ from flask import Blueprint, abort, redirect, render_template, request, send_fil
 from Controller import relatorio_pdf
 from Controller.graficos import fatias_pizza
 from Model import repositorio
-from Model.config import LETRAS, PIN_ADMIN, QTD_ALTERNATIVAS
+from Model.config import LETRAS, NOTA_MAXIMA, PIN_ADMIN, QTD_ALTERNATIVAS
+from Model.perguntas_iniciais import PERGUNTAS_INICIAIS
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -107,6 +109,35 @@ def limpar_jornadas():
     return redirect(url_for('admin.jornadas'))
 
 
+# ---------- Avaliações do quiz (validação: notas de 1 a 10 e sugestões) ----------
+
+def _dados_avaliacoes():
+    avaliacoes = repositorio.listar_avaliacoes()
+    jornadas = repositorio.resumo_partidas()['partidas']
+    return {
+        'avaliacoes': avaliacoes,
+        'criterios': repositorio.resumo_avaliacoes(avaliacoes),
+        'jornadas': jornadas,
+        # Quantas jornadas concluídas foram avaliadas (taxa de resposta da validação).
+        'taxa_resposta': repositorio.percentual_acerto(len(avaliacoes), jornadas),
+        'com_comentario': sum(1 for a in avaliacoes if a['comentario']),
+    }
+
+
+@admin_bp.get('/avaliacoes')
+def avaliacoes():
+    dados = _dados_avaliacoes()
+    so_comentarios = bool(request.args.get('comentarios'))
+    lista = [a for a in dados['avaliacoes'] if a['comentario']] if so_comentarios else dados['avaliacoes']
+    return render_template('admin_avaliacoes.html', **dados, lista=lista, so_comentarios=so_comentarios,
+                           nota_maxima=NOTA_MAXIMA)
+
+
+@admin_bp.get('/avaliacoes/pdf')
+def avaliacoes_pdf():
+    return _baixar_pdf(relatorio_pdf.relatorio_avaliacoes(**_dados_avaliacoes()), 'avaliacoes')
+
+
 def _baixar_pdf(conteudo, nome):
     return send_file(
         BytesIO(conteudo),
@@ -120,7 +151,13 @@ def _baixar_pdf(conteudo, nome):
 
 @admin_bp.get('/perguntas')
 def perguntas():
-    return render_template('admin_perguntas.html', perguntas=repositorio.listar_perguntas(), letras=LETRAS)
+    return render_template(
+        'admin_perguntas.html',
+        perguntas=repositorio.listar_perguntas(),
+        letras=LETRAS,
+        total_padrao=len(PERGUNTAS_INICIAIS),
+        adicionadas=request.args.get('adicionadas', type=int),
+    )
 
 
 def _ler_formulario():
@@ -183,6 +220,12 @@ def editar_pergunta(pergunta_id):
 def excluir_pergunta(pergunta_id):
     repositorio.excluir_pergunta(pergunta_id)
     return redirect(url_for('admin.perguntas'))
+
+
+@admin_bp.post('/perguntas/adicionar-padrao')
+def adicionar_perguntas_padrao():
+    """Adiciona as provações padrão que ainda não estão no banco, sem apagar nem alterar as existentes."""
+    return redirect(url_for('admin.perguntas', adicionadas=repositorio.adicionar_perguntas_faltantes()))
 
 
 @admin_bp.post('/perguntas/restaurar')
