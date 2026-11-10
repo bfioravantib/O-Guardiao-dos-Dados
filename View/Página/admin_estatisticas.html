@@ -1,0 +1,99 @@
+{% extends 'admin.html' %}
+{% from '_graficos.html' import pizza, percentual %}
+
+{% block titulo %}O Guardião dos Dados · Estatísticas{% endblock %}
+
+{% block admin_conteudo %}
+<div class="indicadores indicadores-4">
+    <div class="indicador"><span class="indicador-valor">{{ resumo.respostas }}</span><span class="indicador-rotulo">Respostas Registradas</span></div>
+    <div class="indicador"><span class="indicador-valor valor-acerto">{{ resumo.acertos }}</span><span class="indicador-rotulo">Acertos</span></div>
+    <div class="indicador"><span class="indicador-valor valor-erro">{{ resumo.erros }}</span><span class="indicador-rotulo">Erros</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(resumo.taxa) }}</span><span class="indicador-rotulo">Taxa de Acerto</span></div>
+</div>
+
+<form class="cartao" method="get" action="{{ url_for('admin.estatisticas') }}#graficos">
+    <div class="cabecalho-secao">
+        <h3 class="titulo-epico">Acerto por Pergunta</h3>
+        <div class="acoes">
+            <button type="submit" name="graficos" value="1" class="botao botao-primario botao-pequeno">🥧 Gerar gráficos de pizza</button>
+            <button type="submit" formaction="{{ url_for('admin.estatisticas_pdf') }}" class="botao botao-secundario botao-pequeno">📄 Exportar PDF</button>
+        </div>
+    </div>
+    <p class="texto-suave nota-selecao">Marque as perguntas que devem entrar nos gráficos e no PDF. Sem nenhuma marcada, todas entram.</p>
+    <div class="tabela-rolagem">
+        <table class="tabela tabela-estatisticas">
+            <thead>
+                <tr>
+                    <th class="selecao"><input type="checkbox" id="marcar-todas" aria-label="Marcar todas as perguntas" hidden></th>
+                    <th class="num">#</th>
+                    <th>Pergunta</th>
+                    <th class="num">Respostas</th>
+                    <th class="num">Acertos</th>
+                    <th class="num">Erros</th>
+                    <th>Taxa</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for est in estatisticas %}
+                <tr>
+                    <td class="selecao">
+                        <input type="checkbox" name="p" value="{{ est.id }}" class="marcar-pergunta"
+                               aria-label="Incluir a pergunta {{ est.numero }}" {{ 'checked' if est.id in marcadas }}>
+                    </td>
+                    <td class="num">{{ est.numero }}</td>
+                    <td class="{{ 'excluida' if est.excluida }}">{{ est.enunciado }}{{ ' (excluída)' if est.excluida }}</td>
+                    <td class="num">{{ est.respostas }}</td>
+                    <td class="num">{{ est.acertos }}</td>
+                    <td class="num">{{ est.erros }}</td>
+                    <td>
+                        <div class="taxa">
+                            <div class="taxa-trilho"><div class="taxa-preenchida" style="width: {{ est.taxa or 0 }}%"></div></div>
+                            <span class="taxa-valor">{{ percentual(est.taxa) }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="vazio">Nenhuma pergunta cadastrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if graficos %}
+<section class="cartao" id="graficos">
+    <div class="cabecalho-secao">
+        <h3 class="titulo-epico">Gráficos de Pizza</h3>
+        <a href="{{ url_for('admin.estatisticas', p=marcadas|list) }}" class="botao botao-secundario botao-pequeno">Fechar gráficos</a>
+    </div>
+    <div class="grade-graficos">
+        {{ pizza(resumo.acertos, resumo.erros, 'Visão geral', 'Todas as respostas registradas') }}
+        {% for est in graficos %}
+            {{ pizza(est.acertos, est.erros, 'Pergunta ' ~ est.numero ~ (' (excluída)' if est.excluida else ''), est.enunciado) }}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // "Marcar todas": só aparece com JavaScript ativo; sem ele as caixas individuais continuam funcionando.
+    (function () {
+        var todas = document.getElementById('marcar-todas');
+        var caixas = Array.prototype.slice.call(document.querySelectorAll('.marcar-pergunta'));
+        if (!todas || !caixas.length) return;
+        todas.hidden = false;
+        function atualizar() {
+            var marcadas = caixas.filter(function (c) { return c.checked; }).length;
+            todas.checked = marcadas === caixas.length;
+            todas.indeterminate = marcadas > 0 && marcadas < caixas.length;
+        }
+        todas.addEventListener('change', function () {
+            caixas.forEach(function (c) { c.checked = todas.checked; });
+        });
+        caixas.forEach(function (c) { c.addEventListener('change', atualizar); });
+        atualizar();
+    })();
+</script>
+{% endblock %}

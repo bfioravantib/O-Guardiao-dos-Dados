@@ -1,0 +1,65 @@
+{% extends 'admin.html' %}
+{% from '_graficos.html' import barras_participantes, percentual %}
+
+{% block titulo %}O Guardião dos Dados · Registro de Jornadas{% endblock %}
+
+{% block admin_conteudo %}
+<div class="indicadores">
+    <div class="indicador"><span class="indicador-valor">{{ partidas|length }}</span><span class="indicador-rotulo">Jornadas Concluídas</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(media) }}</span><span class="indicador-rotulo">Média de Aproveitamento</span></div>
+    <div class="indicador"><span class="indicador-valor">{{ percentual(melhor) }}</span><span class="indicador-rotulo">Melhor Resultado</span></div>
+</div>
+
+{% if participantes %}
+<div class="cartao">
+    <h3 class="titulo-epico">Média por Participante</h3>
+    <p class="texto-suave nota-selecao">Média de aproveitamento das jornadas de cada participante. A linha tracejada marca a média geral.</p>
+    {{ barras_participantes(participantes, media) }}
+</div>
+{% endif %}
+
+<div class="cartao">
+    <div class="cabecalho-secao">
+        <h3 class="titulo-epico">Registro de Jornadas</h3>
+        <div class="acoes">
+            <a href="{{ url_for('admin.jornadas_pdf') }}" class="botao botao-secundario botao-pequeno">📄 Exportar PDF</a>
+            {% if partidas %}
+            <form method="post" action="{{ url_for('admin.limpar_jornadas') }}"
+                  onsubmit="return confirm('Apagar todo o histórico de jornadas? As estatísticas por pergunta também serão zeradas. Esta ação não pode ser desfeita.')">
+                <button type="submit" class="botao botao-perigo botao-pequeno">Limpar histórico</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    <p class="texto-suave nota-selecao">Cada conclusão do questionário fica registrada aqui. Clique numa jornada para ver as respostas.</p>
+    <div class="lista-partidas">
+        {% for partida in partidas %}
+        <details class="partida">
+            <summary>
+                <span class="numero-jornada">#{{ partida.numero }}</span>
+                <span class="participante {{ 'participante-anonimo' if not partida.participante }}">{{ partida.participante or 'Sem identificação' }}</span>
+                <span class="data">{{ partida.data.strftime('%d/%m/%Y %H:%M') }}</span>
+                <span class="placar-jornada">
+                    <span class="valor-acerto">{{ partida.acertos }} ✓</span>
+                    <span class="valor-erro">{{ partida.erros }} ✗</span>
+                </span>
+                <span class="selo">{{ percentual(partida.taxa) }}</span>
+            </summary>
+            <ol class="resumo-respostas">
+                {% for r in partida.respostas %}
+                <li>
+                    <span class="marca {{ 'acerto' if r.acertou else 'erro' }}">{{ '✓' if r.acertou else '✗' }}</span>
+                    <div>
+                        <div>{{ r.enunciado }}</div>
+                        <div class="detalhe-resposta">Respondeu {{ letras[r.escolhida] }} · Correta {{ letras[r.correta] }}</div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </details>
+        {% else %}
+        <p class="vazio">Nenhuma jornada registrada ainda.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

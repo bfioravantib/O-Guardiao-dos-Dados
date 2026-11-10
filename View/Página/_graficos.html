@@ -1,0 +1,57 @@
+{# Macros das telas de estatísticas e jornadas. As fatias da pizza são calculadas em Controller/graficos.py. #}
+
+{# Percentual formatado ("80%"), ou um traço quando não há respostas. #}
+{% macro percentual(taxa) %}{{ '–' if taxa is none else taxa ~ '%' }}{% endmacro %}
+
+{# Gráfico de pizza de acertos x erros. #}
+{% macro pizza(acertos, erros, titulo, subtitulo='') %}
+{% set fatias = fatias_pizza(acertos, erros) %}
+<figure class="grafico-pizza">
+    <figcaption>
+        <span class="grafico-titulo">{{ titulo }}</span>
+        {% if subtitulo %}<span class="grafico-subtitulo" title="{{ subtitulo }}">{{ subtitulo }}</span>{% endif %}
+    </figcaption>
+    {% if fatias %}
+    <svg class="pizza" viewBox="-1.05 -1.05 2.1 2.1" role="img"
+         aria-label="{{ titulo }}: {{ acertos }} acertos e {{ erros }} erros">
+        {% for f in fatias %}
+        <path d="{{ f.d }}" class="{{ f.classe }}"><title>{{ f.rotulo }}: {{ f.valor }} ({{ f.percentual }}%)</title></path>
+        {% endfor %}
+    </svg>
+    {% else %}
+    <div class="pizza pizza-vazia">Sem respostas</div>
+    {% endif %}
+    <ul class="legenda">
+        {% set total = acertos + erros %}
+        {% set pct_acertos = percentual_acerto(acertos, total) %}
+        <li><span class="amostra fatia-acertos"></span>Acertos <strong>{{ acertos }}</strong>{% if total %} · {{ pct_acertos }}%{% endif %}</li>
+        <li><span class="amostra fatia-erros"></span>Erros <strong>{{ erros }}</strong>{% if total %} · {{ 100 - pct_acertos }}%{% endif %}</li>
+    </ul>
+</figure>
+{% endmacro %}
+
+{# Barras com a média de aproveitamento de cada participante; a linha tracejada marca a média geral. #}
+{% macro barras_participantes(participantes, media_geral) %}
+<figure class="grafico-barras">
+    <ol class="barras">
+        {% for p in participantes %}
+        {% set nome = p.nome or 'Sem identificação' %}
+        <li class="barra {{ 'barra-anonima' if p.anonimo }}">
+            <span class="barra-nome" title="{{ nome }}">{{ nome }}</span>
+            <span class="barra-trilho" role="img"
+                  aria-label="{{ nome }}: média de {{ p.media }}% em {{ p.jornadas }} {{ 'jornada' if p.jornadas == 1 else 'jornadas' }}">
+                <span class="barra-preenchida" style="width: {{ p.media }}%"></span>
+                {% if media_geral is not none %}<span class="barra-marca-media" style="left: {{ media_geral }}%"></span>{% endif %}
+            </span>
+            <span class="barra-valor">
+                <strong>{{ p.media }}%</strong>
+                <small>{{ '%.1f'|format(p.media_acertos)|replace('.', ',') }} acertos/jornada · {{ p.jornadas }} {{ 'jornada' if p.jornadas == 1 else 'jornadas' }}</small>
+            </span>
+        </li>
+        {% endfor %}
+    </ol>
+    {% if media_geral is not none %}
+    <figcaption class="legenda-barras"><span class="amostra-media"></span>Média geral de aproveitamento: <strong>{{ media_geral }}%</strong></figcaption>
+    {% endif %}
+</figure>
+{% endmacro %}

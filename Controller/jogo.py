@@ -2,9 +2,14 @@
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from Model import repositorio
-from Model.config import LETRAS
+from Model.config import LETRAS, TAMANHO_MAXIMO_NOME
 
 jogo_bp = Blueprint('jogo', __name__, url_prefix='/jogo')
+
+
+def _nome_participante(texto):
+    """Nome sem espaços sobrando, limitado a TAMANHO_MAXIMO_NOME caracteres."""
+    return ' '.join((texto or '').split())[:TAMANHO_MAXIMO_NOME]
 
 
 def _pergunta_atual(jogo):
@@ -22,16 +27,22 @@ def _finalizar(jogo):
     session.pop('jogo', None)
     if not jogo['respostas']:
         return redirect(url_for('menu.inicio'))
-    session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'])
+    session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'], jogo.get('participante'))
     return redirect(url_for('jogo.resultado'))
 
 
 @jogo_bp.get('/')
 def iniciar():
+    # O nome vem do formulário do menu; em "Nova Jornada" reaproveita o último nome usado.
+    participante = _nome_participante(request.args.get('participante')) or session.get('participante')
+    if not participante:
+        return redirect(url_for('menu.inicio'))
+    session['participante'] = participante
+
     ids = [p['id'] for p in repositorio.listar_perguntas()]
     if not ids:
         return render_template('sem_perguntas.html')
-    session['jogo'] = {'perguntas': ids, 'indice': 0, 'respostas': []}
+    session['jogo'] = {'perguntas': ids, 'indice': 0, 'respostas': [], 'participante': participante}
     return redirect(url_for('jogo.pergunta'))
 
 
@@ -101,7 +112,7 @@ def resultado():
     if partida is None:
         return redirect(url_for('menu.inicio'))
 
-    percentual = round(partida['acertos'] / partida['total'] * 100)
+    percentual = partida['taxa']  # mesmo arredondamento do registro de jornadas
     if percentual == 100:
         mensagem = 'Perfeito! Você acertou todas.'
     elif percentual >= 70:

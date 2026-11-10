@@ -6,8 +6,10 @@
 
 {% block conteudo %}
 <nav class="abas">
-    <a href="{{ url_for('admin.respostas') }}" class="aba {{ 'ativa' if request.endpoint == 'admin.respostas' }}">📜 Histórico de Partidas</a>
-    <a href="{{ url_for('admin.perguntas') }}" class="aba {{ 'ativa' if request.endpoint != 'admin.respostas' }}">⚔️ Grimório de Perguntas</a>
+    {% set aba = request.endpoint.split('.')[-1] %}
+    <a href="{{ url_for('admin.estatisticas') }}" class="aba {{ 'ativa' if aba.startswith('estatisticas') }}">📊 Estatísticas</a>
+    <a href="{{ url_for('admin.jornadas') }}" class="aba {{ 'ativa' if aba.startswith('jornadas') }}">📜 Registro de Jornadas</a>
+    <a href="{{ url_for('admin.perguntas') }}" class="aba {{ 'ativa' if 'pergunta' in aba }}">⚔️ Grimório de Perguntas</a>
 </nav>
 {% block admin_conteudo %}{% endblock %}
 {% endblock %}

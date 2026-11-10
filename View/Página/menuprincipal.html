@@ -20,7 +20,14 @@
             &ldquo;Saudações, viajante! Cinco provações aguardam você na Cidadela. Mostre sua sabedoria sobre Segurança da Informação e proteção de dados!&rdquo;
         </p>
         {% if total_perguntas %}
-            <a class="botao botao-primario botao-grande" href="{{ url_for('jogo.iniciar') }}">Iniciar Provação</a>
+            <form class="form-participante" method="get" action="{{ url_for('jogo.iniciar') }}">
+                <label class="campo campo-participante">
+                    <span>Quem enfrenta as provações?</span>
+                    <input type="text" name="participante" value="{{ session.get('participante', '') }}"
+                           placeholder="Seu nome" maxlength="{{ tamanho_maximo_nome }}" autocomplete="name" required>
+                </label>
+                <button type="submit" class="botao botao-primario botao-grande">Iniciar Provação</button>
+            </form>
             <p class="info-perguntas texto-suave">
                 ⚔️ {{ total_perguntas }} {{ 'provação disponível' if total_perguntas == 1 else 'provações disponíveis' }}
             </p>

@@ -31,10 +31,11 @@ CREATE TABLE IF NOT EXISTS perguntas (
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
-    id      {ID},
-    data    TEXT    NOT NULL,
-    total   INTEGER NOT NULL,
-    acertos INTEGER NOT NULL
+    id           {ID},
+    data         TEXT    NOT NULL,
+    total        INTEGER NOT NULL,
+    acertos      INTEGER NOT NULL,
+    participante TEXT               -- nome informado no menu (NULL nas jornadas anteriores a esse campo)
 );
 
 CREATE TABLE IF NOT EXISTS respostas (
@@ -122,8 +123,22 @@ def _tabela_perguntas_existe(conexao):
     return bool(conexao.execute(sql).fetchone()['existe'])
 
 
+def _coluna_existe(conexao, tabela, coluna):
+    if USA_POSTGRES:
+        sql = ('SELECT COUNT(*) > 0 AS existe FROM information_schema.columns '
+               'WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?')
+        return bool(conexao.execute(sql, (tabela, coluna)).fetchone()['existe'])
+    return any(linha['name'] == coluna for linha in conexao.execute(f'PRAGMA table_info({tabela})').fetchall())
+
+
+def _atualizar_esquema(conexao):
+    """Ajustes em bancos criados por versões anteriores do app (o SQLite local e o Neon já em uso)."""
+    if not _coluna_existe(conexao, 'partidas', 'participante'):
+        conexao.execute('ALTER TABLE partidas ADD COLUMN participante TEXT')
+
+
 def inicializar():
-    """Cria as tabelas e cadastra as perguntas de exemplo apenas quando o banco ainda não existe."""
+    """Cria as tabelas (com as perguntas de exemplo) quando o banco ainda não existe e atualiza bancos antigos."""
     with closing(conectar()) as conexao:
         if USA_POSTGRES:
             # No Vercel várias instâncias podem iniciar ao mesmo tempo: a trava evita cadastrar as perguntas duas vezes.
@@ -133,4 +148,5 @@ def inicializar():
                 if comando.strip():
                     conexao.execute(comando)
             inserir_perguntas_iniciais(conexao)
+        _atualizar_esquema(conexao)
         conexao.commit()  # também libera a trava do PostgreSQL

@@ -1,12 +1,20 @@
-"""Área administrativa: histórico de respostas e cadastro de perguntas."""
+"""Área administrativa: estatísticas por pergunta, registro de jornadas (com relatórios em PDF) e cadastro de perguntas."""
 import hmac
+from io import BytesIO
 
-from flask import Blueprint, abort, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, redirect, render_template, request, send_file, session, url_for
 
+from Controller import relatorio_pdf
+from Controller.graficos import fatias_pizza
 from Model import repositorio
 from Model.config import LETRAS, PIN_ADMIN, QTD_ALTERNATIVAS
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+
+# Globais (e não context processor) para ficarem visíveis também dentro de macros importadas, como _graficos.html.
+admin_bp.add_app_template_global(fatias_pizza)
+admin_bp.add_app_template_global(repositorio.percentual_acerto)
 
 
 @admin_bp.before_request
@@ -23,7 +31,7 @@ def login():
     if request.method == 'POST':
         if hmac.compare_digest(request.form.get('pin', ''), PIN_ADMIN):
             session['admin'] = True
-            return redirect(url_for('admin.respostas'))
+            return redirect(url_for('admin.estatisticas'))
         erro = True
     return render_template('admin_login.html', erro=erro)
 
@@ -36,26 +44,76 @@ def sair():
 
 @admin_bp.get('/')
 def inicio():
-    return redirect(url_for('admin.respostas'))
+    return redirect(url_for('admin.estatisticas'))
 
 
-# ---------- Respostas ----------
+# ---------- Estatísticas por pergunta ----------
 
-@admin_bp.get('/respostas')
-def respostas():
+def _estatisticas_selecionadas():
+    """Estatísticas das perguntas marcadas na tela (parâmetro ?p=<id>, repetido); sem marcação, todas."""
+    estatisticas = repositorio.estatisticas_por_pergunta()
+    marcadas = set(request.args.getlist('p', type=int))
+    selecionadas = [e for e in estatisticas if e['id'] in marcadas]
+    return estatisticas, marcadas, selecionadas or estatisticas
+
+
+@admin_bp.get('/estatisticas')
+def estatisticas():
+    estatisticas, marcadas, selecionadas = _estatisticas_selecionadas()
     return render_template(
-        'admin_respostas.html',
+        'admin_estatisticas.html',
         resumo=repositorio.resumo_partidas(),
-        desempenho=repositorio.desempenho_por_pergunta(),
-        partidas=repositorio.listar_partidas(),
+        estatisticas=estatisticas,
+        marcadas=marcadas,
+        graficos=selecionadas if request.args.get('graficos') else None,
+    )
+
+
+@admin_bp.get('/estatisticas/pdf')
+def estatisticas_pdf():
+    _, marcadas, selecionadas = _estatisticas_selecionadas()
+    pdf = relatorio_pdf.relatorio_estatisticas(repositorio.resumo_partidas(), selecionadas, filtrado=bool(marcadas))
+    return _baixar_pdf(pdf, 'estatisticas')
+
+
+# ---------- Registro de jornadas (cada conclusão do questionário) ----------
+
+@admin_bp.get('/jornadas')
+def jornadas():
+    partidas = repositorio.listar_partidas()
+    taxas = [p['taxa'] for p in partidas if p['taxa'] is not None]
+    return render_template(
+        'admin_jornadas.html',
+        partidas=partidas,
+        media=repositorio.percentual_acerto(sum(taxas), len(taxas) * 100),
+        melhor=max(taxas) if taxas else None,
+        participantes=repositorio.medias_por_participante(partidas),
         letras=LETRAS,
     )
 
 
-@admin_bp.post('/respostas/limpar')
-def limpar_respostas():
+@admin_bp.get('/jornadas/pdf')
+def jornadas_pdf():
+    partidas = repositorio.listar_partidas()
+    pdf = relatorio_pdf.relatorio_jornadas(
+        repositorio.resumo_partidas(), partidas, repositorio.medias_por_participante(partidas)
+    )
+    return _baixar_pdf(pdf, 'jornadas')
+
+
+@admin_bp.post('/jornadas/limpar')
+def limpar_jornadas():
     repositorio.limpar_partidas()
-    return redirect(url_for('admin.respostas'))
+    return redirect(url_for('admin.jornadas'))
+
+
+def _baixar_pdf(conteudo, nome):
+    return send_file(
+        BytesIO(conteudo),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f'guardiao-{nome}-{repositorio.agora():%Y-%m-%d}.pdf',
+    )
 
 
 # ---------- Perguntas ----------
