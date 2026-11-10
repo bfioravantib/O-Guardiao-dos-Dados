@@ -97,19 +97,17 @@ def adicionar_perguntas_faltantes():
 
 # ---------- Jogadores (identificação anônima: "Jogador 1", "Jogador 2"...) ----------
 
-def numero_jogador(codigo):
-    """Número do jogador dono deste código, ou None se o código não existe (ex.: histórico foi limpo)."""
-    linha = obter().execute('SELECT id FROM jogadores WHERE codigo = ?', (codigo,)).fetchone()
-    return linha['id'] if linha else None
-
-
 def novo_jogador():
-    """Cria um jogador. Retorna (numero, codigo): o número é sequencial e o código fica na sessão do navegador."""
+    """Próximo número de jogador (1, 2, 3...), um por jornada concluída.
+
+    O número é o id gerado pelo banco na tabela "jogadores", então nunca se repete, mesmo com várias jornadas
+    terminando ao mesmo tempo. O código aleatório só preenche a coluna (não identifica ninguém).
+    """
     conexao = obter()
-    codigo = secrets.token_hex(16)
-    numero = conexao.execute('INSERT INTO jogadores (codigo) VALUES (?) RETURNING id', (codigo,)).fetchone()['id']
+    numero = conexao.execute('INSERT INTO jogadores (codigo) VALUES (?) RETURNING id',
+                             (secrets.token_hex(16),)).fetchone()['id']
     conexao.commit()
-    return numero, codigo
+    return numero
 
 
 def rotulo_jogador(numero):

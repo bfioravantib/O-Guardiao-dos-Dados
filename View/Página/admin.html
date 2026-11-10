@@ -5,6 +5,9 @@
 {% block topo_direita %}<a href="{{ url_for('admin.sair') }}" class="link-voltar">Sair</a>{% endblock %}
 
 {% block conteudo %}
+{% for alerta in alertas_configuracao %}
+<p class="alerta-configuracao" role="alert">⚠️ {{ alerta }}</p>
+{% endfor %}
 <nav class="abas">
     {% set aba = request.endpoint.split('.')[-1] %}
     <a href="{{ url_for('admin.estatisticas') }}" class="aba {{ 'ativa' if aba.startswith('estatisticas') }}">📊 Estatísticas</a>

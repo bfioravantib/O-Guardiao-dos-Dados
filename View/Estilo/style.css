@@ -877,3 +877,7 @@ html { scroll-behavior: smooth; }
     html { scroll-behavior: auto; }
     .seta-rolar { animation: none; }
 }
+
+/* Alerta de configuração do Vercel no topo da área administrativa (banco temporário, chave de sessão) */
+.alerta-configuracao { margin: 0 0 1rem; padding: 0.85rem 1.1rem; border-radius: 12px; border: 2px solid var(--erro);
+                       background: var(--erro-claro); color: #7f1d1d; font-weight: 600; line-height: 1.45; }

@@ -11,6 +11,15 @@ from Model import banco
 from Model.config import RAIZ
 
 
+def _paginas_sem_cache(resposta):
+    """Páginas HTML nunca ficam guardadas no navegador: depois de um deploy, o celular sempre recebe a versão nova
+    (sem isso, navegadores como Brave/Chrome podem reabrir uma cópia antiga da página ao voltar ou restaurar a aba).
+    O CSS continua usando o ?v= de base.html para se atualizar."""
+    if resposta.mimetype == 'text/html':
+        resposta.headers['Cache-Control'] = 'no-store'
+    return resposta
+
+
 def criar_app():
     app = Flask(
         __name__,
@@ -23,6 +32,7 @@ def criar_app():
 
     banco.inicializar()
     app.teardown_appcontext(banco.fechar)
+    app.after_request(_paginas_sem_cache)
 
     app.register_blueprint(menu_bp)
     app.register_blueprint(jogo_bp)

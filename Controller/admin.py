@@ -8,7 +8,7 @@ from flask import Blueprint, abort, redirect, render_template, request, send_fil
 from Controller import relatorio_pdf
 from Controller.graficos import fatias_pizza
 from Model import repositorio
-from Model.config import LETRAS, NOTA_MAXIMA, PIN_ADMIN, QTD_ALTERNATIVAS
+from Model.config import BANCO_TEMPORARIO, LETRAS, NOTA_MAXIMA, PIN_ADMIN, QTD_ALTERNATIVAS, SEM_CHAVE_SESSAO
 from Model.perguntas_iniciais import PERGUNTAS_INICIAIS
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -17,6 +17,21 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 # Globais (e não context processor) para ficarem visíveis também dentro de macros importadas, como _graficos.html.
 admin_bp.add_app_template_global(fatias_pizza)
 admin_bp.add_app_template_global(repositorio.percentual_acerto)
+
+
+@admin_bp.context_processor
+def alertas_de_configuracao():
+    """Problemas de configuração do Vercel que fazem dados ou sessões se perderem (exibidos no topo do admin)."""
+    alertas = []
+    if BANCO_TEMPORARIO:
+        alertas.append('Banco de dados temporário: o site está no Vercel sem PostgreSQL (variável DATABASE_URL). '
+                       'Cada servidor do Vercel usa um banco próprio, que é apagado sozinho, então as jornadas, '
+                       'avaliações e perguntas cadastradas se perdem. Conecte um banco Neon ao projeto em '
+                       'Storage e faça um Redeploy.')
+    if SEM_CHAVE_SESSAO:
+        alertas.append('Variável QUIZ_SECRET_KEY não definida: jogadores podem perder a jornada no meio e o login do '
+                       'admin pode cair. Defina-a em Settings → Environment Variables e faça um Redeploy.')
+    return {'alertas_configuracao': alertas}
 
 
 @admin_bp.before_request

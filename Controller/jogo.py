@@ -10,15 +10,6 @@ from Model.config import (CRITERIOS_AVALIACAO, LETRAS, NOTA_MAXIMA, PERGUNTAS_PO
 jogo_bp = Blueprint('jogo', __name__, url_prefix='/jogo')
 
 
-def _numero_jogador():
-    """Número anônimo do jogador deste navegador; na primeira jornada concluída ele recebe o próximo número."""
-    codigo = session.get('jogador')
-    numero = repositorio.numero_jogador(codigo) if codigo else None
-    if numero is None:
-        numero, session['jogador'] = repositorio.novo_jogador()
-    return numero
-
-
 def _pergunta_atual(jogo):
     """Pergunta da posição atual, pulando as que foram excluídas durante a partida."""
     while jogo['indice'] < len(jogo['perguntas']):
@@ -34,7 +25,8 @@ def _finalizar(jogo):
     session.pop('jogo', None)
     if not jogo['respostas']:
         return redirect(url_for('menu.inicio'))
-    participante = repositorio.rotulo_jogador(_numero_jogador())
+    # Cada jornada concluída recebe o próximo número: Jogador 1, Jogador 2, Jogador 3...
+    participante = repositorio.rotulo_jogador(repositorio.novo_jogador())
     session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'], participante)
     return redirect(url_for('jogo.resultado'))
 

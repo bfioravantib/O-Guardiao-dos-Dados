@@ -38,14 +38,37 @@ NAVEGADORES = [
 ]
 
 
-def achar_navegador():
-    for caminho in NAVEGADORES:
-        if os.path.exists(caminho):
-            return caminho
+def navegadores_instalados():
+    """Edge e Chrome encontrados no computador, na ordem de preferência."""
+    encontrados = [c for c in NAVEGADORES if os.path.exists(c)]
     for nome in ('msedge', 'microsoft-edge', 'google-chrome', 'chromium', 'chromium-browser', 'chrome'):
-        if shutil.which(nome):
-            return shutil.which(nome)
-    sys.exit('Nenhum navegador Edge/Chrome encontrado para gerar o PDF.')
+        caminho = shutil.which(nome)
+        if caminho and caminho not in encontrados:
+            encontrados.append(caminho)
+    return encontrados
+
+
+def imprimir_pdf(pagina, destino, pasta):
+    """Imprime a página HTML em PDF com o primeiro navegador que funcionar.
+
+    Tenta o próximo navegador quando um deles não gera o arquivo (acontece, por exemplo, quando o Edge está no meio
+    de uma atualização automática e fecha na hora sem imprimir).
+    """
+    navegadores = navegadores_instalados()
+    if not navegadores:
+        sys.exit('Nenhum navegador Edge/Chrome encontrado para gerar o PDF.')
+    for i, navegador in enumerate(navegadores):
+        if destino.exists():
+            destino.unlink()
+        subprocess.run([
+            navegador, '--headless=new', '--disable-gpu', '--no-pdf-header-footer',
+            '--allow-file-access-from-files', '--virtual-time-budget=15000',
+            f'--user-data-dir={Path(pasta) / f"perfil{i}"}', f'--print-to-pdf={destino}', Path(pagina).as_uri(),
+        ], capture_output=True, timeout=180)
+        if destino.exists() and destino.stat().st_size:
+            return
+        print(f'Aviso: {Path(navegador).name} não gerou o PDF; tentando outro navegador.')
+    sys.exit('Nenhum navegador conseguiu gerar o PDF.')
 
 
 def ancora_github(texto, _separador='-'):
@@ -171,18 +194,11 @@ def montar_html():
 
 
 def main():
-    navegador = achar_navegador()
-    with tempfile.TemporaryDirectory() as pasta:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:  # o navegador pode demorar a soltar a pasta
         pagina = Path(pasta) / 'manual.html'
         pagina.write_text(montar_html(), encoding='utf-8')
         destino = Path(pasta) / 'manual.pdf'
-        subprocess.run([
-            navegador, '--headless=new', '--disable-gpu', '--no-pdf-header-footer',
-            '--allow-file-access-from-files', '--virtual-time-budget=15000',
-            f'--user-data-dir={Path(pasta) / "perfil"}', f'--print-to-pdf={destino}', pagina.as_uri(),
-        ], check=True, capture_output=True, timeout=180)
-        if not destino.exists():
-            sys.exit('O navegador não gerou o PDF.')
+        imprimir_pdf(pagina, destino, pasta)
         SAIDA.parent.mkdir(exist_ok=True)
         shutil.copyfile(destino, SAIDA)
     print(f'PDF gerado: {SAIDA}')

@@ -53,8 +53,7 @@ COLUNA_ID = 'SERIAL PRIMARY KEY' if USA_POSTGRES else 'INTEGER PRIMARY KEY AUTOI
 # tanto em bancos novos quanto nos que já existiam (o quiz.db local e o Neon).
 TABELAS_ADICIONAIS = [
     # Numeração anônima dos jogadores: o id gerado pelo banco é o número do "Jogador N" (sem repetir, mesmo com
-    # vários acessos simultâneos). O código aleatório fica na sessão do navegador para reconhecer o jogador nas
-    # próximas jornadas, sem guardar nenhum dado pessoal.
+    # vários acessos simultâneos). Cada jornada concluída gera uma linha; o código aleatório não identifica ninguém.
     """CREATE TABLE IF NOT EXISTS jogadores (
     id     {ID},
     codigo TEXT NOT NULL UNIQUE

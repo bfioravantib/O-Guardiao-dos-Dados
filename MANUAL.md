@@ -64,8 +64,8 @@ Menu (/)  ──────▶  /jogo/  ──▶  /jogo/pergunta  ⇄  /jogo/r
 - Enquanto o jogo acontece, o andamento (perguntas, posição atual, respostas dadas) fica **na sessão** do
   navegador (um cookie assinado). Nada vai para o banco no meio do caminho.
 - Só quando a última pergunta é concluída a jornada é gravada (tabela `partidas`) junto com cada resposta
-  (tabela `respostas`). Na primeira jornada concluída o navegador recebe um número de jogador (tabela
-  `jogadores`); as próximas jornadas do mesmo navegador usam o mesmo número.
+  (tabela `respostas`). Cada jornada concluída recebe o próximo número de jogador (tabela `jogadores`):
+  a primeira é "Jogador 1", a segunda "Jogador 2", e assim por diante.
 - Na tela de resultado, a avaliação enviada é gravada na tabela `avaliacoes`, ligada à jornada.
 - É dessas tabelas que saem todas as estatísticas, gráficos e PDFs da área administrativa.
 
@@ -166,23 +166,24 @@ escrito no código.
 | Nome no código | Variável de ambiente | Padrão | Para que serve |
 |---|---|---|---|
 | [`PIN_ADMIN`](Model/config.py#L10) | `QUIZ_PIN_ADMIN` | `1234` (só para uso local) | PIN da área administrativa. |
-| [`URL_BANCO`](Model/config.py#L14) | `DATABASE_URL` ou `POSTGRES_URL` | — | Endereço do PostgreSQL (Neon). Se existir, o app usa PostgreSQL; se não, SQLite. |
-| [`CAMINHO_BANCO`](Model/config.py#L19) | `QUIZ_BANCO` | `quiz.db` na raiz (ou `/tmp/quiz.db` no Vercel) | Arquivo SQLite. Útil para testes com um banco separado. |
-| [`FUSO`](Model/config.py#L22) | `QUIZ_FUSO` | `America/Sao_Paulo` | Fuso das datas gravadas e exibidas. |
+| [`URL_BANCO`](Model/config.py#L29) | `DATABASE_URL` ou `POSTGRES_URL` (também com prefixo, ex.: `STORAGE_DATABASE_URL`) | — | Endereço do PostgreSQL (Neon). Se existir, o app usa PostgreSQL; se não, SQLite. |
+| [`CAMINHO_BANCO`](Model/config.py#L34) | `QUIZ_BANCO` | `quiz.db` na raiz (ou `/tmp/quiz.db` no Vercel) | Arquivo SQLite. Útil para testes com um banco separado. |
+| [`FUSO`](Model/config.py#L44) | `QUIZ_FUSO` | `America/Sao_Paulo` | Fuso das datas gravadas e exibidas. |
 | `SECRET_KEY` (em [app.py](app.py#L22)) | `QUIZ_SECRET_KEY` | aleatória a cada início | Assina o cookie da sessão. **No Vercel, defina-a**: sem ela, cada instância do servidor gera uma chave diferente e os jogadores perdem o progresso. |
-| — | `VERCEL` | (o Vercel define sozinho) | Só serve para o SQLite cair em `/tmp`, a única pasta gravável no Vercel. |
+| — | `VERCEL` | (o Vercel define sozinho) | Faz o SQLite usar `/tmp` (a única pasta gravável no Vercel) e liga os alertas de configuração do admin. |
+| `BANCO_TEMPORARIO` / `SEM_CHAVE_SESSAO` | — | calculados | `True` quando o site está no Vercel sem PostgreSQL / sem `QUIZ_SECRET_KEY`. Mostram um alerta vermelho no topo da área administrativa. |
 
 Constantes que só existem no código (sem variável de ambiente):
 
 | Nome | Valor | Para que serve |
 |---|---|---|
 | [`RAIZ`](Model/config.py#L6) | pasta do projeto | Base para achar `View/` e `quiz.db`. |
-| [`LETRAS`](Model/config.py#L24) | `['A','B','C','D','E']` | Letras exibidas nas alternativas. |
-| [`QTD_ALTERNATIVAS`](Model/config.py#L25) | `5` | Quantas alternativas o formulário de pergunta exige. |
-| [`PERGUNTAS_POR_JORNADA`](Model/config.py#L28) | `5` | Quantas perguntas são sorteadas a cada jornada (com menos cadastradas, usa todas). Também aparece na fala do menu. |
-| [`NOTA_MAXIMA`](Model/config.py#L33) | `10` | Escala da avaliação do quiz (de 1 até este valor). |
-| [`TAMANHO_MAXIMO_COMENTARIO`](Model/config.py#L34) | `1000` | Limite de caracteres da sugestão escrita. |
-| [`CRITERIOS_AVALIACAO`](Model/config.py#L35) | 3 itens | As perguntas da avaliação. Cada item tem `chave` (coluna do banco — não mude), `pergunta` (texto que o jogador vê), `titulo` (gráficos), `curto` (selos e colunas do PDF), `minimo` e `maximo` (o que significam as notas 1 e 10). |
+| [`LETRAS`](Model/config.py#L46) | `['A','B','C','D','E']` | Letras exibidas nas alternativas. |
+| [`QTD_ALTERNATIVAS`](Model/config.py#L47) | `5` | Quantas alternativas o formulário de pergunta exige. |
+| [`PERGUNTAS_POR_JORNADA`](Model/config.py#L50) | `5` | Quantas perguntas são sorteadas a cada jornada (com menos cadastradas, usa todas). Também aparece na fala do menu. |
+| [`NOTA_MAXIMA`](Model/config.py#L55) | `10` | Escala da avaliação do quiz (de 1 até este valor). |
+| [`TAMANHO_MAXIMO_COMENTARIO`](Model/config.py#L56) | `1000` | Limite de caracteres da sugestão escrita. |
+| [`CRITERIOS_AVALIACAO`](Model/config.py#L57) | 3 itens | As perguntas da avaliação. Cada item tem `chave` (coluna do banco — não mude), `pergunta` (texto que o jogador vê), `titulo` (gráficos), `curto` (selos e colunas do PDF), `minimo` e `maximo` (o que significam as notas 1 e 10). |
 
 > **PIN em produção:** o PIN escrito em `config.py` vai para o GitHub junto com o código. Para o site
 > publicado, prefira definir `QUIZ_PIN_ADMIN` no Vercel — a variável de ambiente sempre tem prioridade sobre
@@ -218,8 +219,8 @@ O esquema está em [Model/banco.py](Model/banco.py#L24) (constantes `ESQUEMA` e 
 
 | Coluna | Tipo | Conteúdo |
 |---|---|---|
-| `id` | inteiro, automático | O número do jogador (o "3" de "Jogador 3"). Gerado pelo banco, então dois jogadores terminando ao mesmo tempo nunca recebem o mesmo número. |
-| `codigo` | texto | Código aleatório guardado na sessão do navegador para reconhecer o jogador nas próximas jornadas. Não é um dado pessoal. |
+| `id` | inteiro, automático | O número do jogador (o "3" de "Jogador 3"), um por jornada concluída. Gerado pelo banco, então duas jornadas terminando ao mesmo tempo nunca recebem o mesmo número. |
+| `codigo` | texto | Código aleatório que só preenche a coluna (não identifica ninguém). |
 
 **`avaliacoes`** — avaliação do quiz feita ao final da jornada (validação)
 
@@ -258,31 +259,31 @@ Viewer* do VS Code). No Neon, use o *SQL Editor* do painel do Neon (acessível p
 | Endereço | Método | Função | Template | O que faz |
 |---|---|---|---|---|
 | `/` | GET | [`menu.inicio`](Controller/menu.py#L11) | `menuprincipal.html` | Menu com o botão "Iniciar Provação". |
-| `/jogo/` | GET | [`jogo.iniciar`](Controller/jogo.py#L43) | — (redireciona) | Sorteia as perguntas da jornada e começa. |
-| `/jogo/pergunta` | GET | [`jogo.pergunta`](Controller/jogo.py#L54) | `jogo.html` | Mostra a pergunta atual (ou o feedback, se já respondida). |
-| `/jogo/responder` | POST | [`jogo.responder`](Controller/jogo.py#L78) | — | Registra a alternativa clicada na sessão. |
-| `/jogo/proxima` | POST | [`jogo.proxima`](Controller/jogo.py#L99) | — | Avança; na última pergunta grava a jornada no banco. |
-| `/jogo/resultado` | GET | [`jogo.resultado`](Controller/jogo.py#L118) | `resultado.html` | Placar, título conquistado, resumo das respostas e o formulário de avaliação (ou o agradecimento). |
-| `/jogo/avaliar` | POST | [`jogo.avaliar`](Controller/jogo.py#L151) | — | Recebe a avaliação da última jornada concluída e volta para o resultado. |
-| `/admin/login` | GET/POST | [`admin.login`](Controller/admin.py#L31) | `admin_login.html` | Pede o PIN. |
-| `/admin/sair` | GET | [`admin.sair`](Controller/admin.py#L42) | — | Sai da área admin. |
-| `/admin/` | GET | [`admin.inicio`](Controller/admin.py#L48) | — | Redireciona para Estatísticas. |
-| `/admin/estatisticas` | GET | [`admin.estatisticas`](Controller/admin.py#L63) | `admin_estatisticas.html` | Acerto por pergunta; com `?graficos=1` mostra as pizzas; `?p=<id>` filtra perguntas. |
-| `/admin/estatisticas/pdf` | GET | [`admin.estatisticas_pdf`](Controller/admin.py#L75) | — (PDF) | Baixa o relatório de estatísticas. |
-| `/admin/jornadas` | GET | [`admin.jornadas`](Controller/admin.py#L84) | `admin_jornadas.html` | Indicadores, média por jogador e lista de jornadas. |
-| `/admin/jornadas/pdf` | GET | [`admin.jornadas_pdf`](Controller/admin.py#L98) | — (PDF) | Baixa o relatório de jornadas. |
-| `/admin/avaliacoes` | GET | [`admin.avaliacoes`](Controller/admin.py#L128) | `admin_avaliacoes.html` | Indicadores, gráficos das notas e lista de avaliações/sugestões; `?comentarios=1` mostra só as com sugestão escrita. |
-| `/admin/avaliacoes/pdf` | GET | [`admin.avaliacoes_pdf`](Controller/admin.py#L137) | — (PDF) | Baixa o relatório de avaliações. |
-| `/admin/jornadas/limpar` | POST | [`admin.limpar_jornadas`](Controller/admin.py#L107) | — | Apaga todo o histórico (jornadas, respostas e avaliações). |
-| `/admin/perguntas` | GET | [`admin.perguntas`](Controller/admin.py#L153) | `admin_perguntas.html` | Lista as perguntas. |
-| `/admin/perguntas/nova` | GET/POST | [`admin.nova_pergunta`](Controller/admin.py#L194) | `admin_form_pergunta.html` | Cadastra pergunta. |
-| `/admin/perguntas/<id>/editar` | GET/POST | [`admin.editar_pergunta`](Controller/admin.py#L206) | `admin_form_pergunta.html` | Edita pergunta. |
-| `/admin/perguntas/<id>/excluir` | POST | [`admin.excluir_pergunta`](Controller/admin.py#L220) | — | Exclui pergunta (o histórico dela é mantido). |
-| `/admin/perguntas/adicionar-padrao` | POST | [`admin.adicionar_perguntas_padrao`](Controller/admin.py#L226) | — | Adiciona as perguntas padrão que ainda não estão no banco, sem apagar nem alterar nenhuma. |
-| `/admin/perguntas/restaurar` | POST | [`admin.restaurar_perguntas`](Controller/admin.py#L232) | — | Troca **todas** as perguntas pelas padrão. |
+| `/jogo/` | GET | [`jogo.iniciar`](Controller/jogo.py#L35) | — (redireciona) | Sorteia as perguntas da jornada e começa. |
+| `/jogo/pergunta` | GET | [`jogo.pergunta`](Controller/jogo.py#L46) | `jogo.html` | Mostra a pergunta atual (ou o feedback, se já respondida). |
+| `/jogo/responder` | POST | [`jogo.responder`](Controller/jogo.py#L70) | — | Registra a alternativa clicada na sessão. |
+| `/jogo/proxima` | POST | [`jogo.proxima`](Controller/jogo.py#L91) | — | Avança; na última pergunta grava a jornada no banco. |
+| `/jogo/resultado` | GET | [`jogo.resultado`](Controller/jogo.py#L110) | `resultado.html` | Placar, título conquistado, resumo das respostas e o formulário de avaliação (ou o agradecimento). |
+| `/jogo/avaliar` | POST | [`jogo.avaliar`](Controller/jogo.py#L143) | — | Recebe a avaliação da última jornada concluída e volta para o resultado. |
+| `/admin/login` | GET/POST | [`admin.login`](Controller/admin.py#L46) | `admin_login.html` | Pede o PIN. |
+| `/admin/sair` | GET | [`admin.sair`](Controller/admin.py#L57) | — | Sai da área admin. |
+| `/admin/` | GET | [`admin.inicio`](Controller/admin.py#L63) | — | Redireciona para Estatísticas. |
+| `/admin/estatisticas` | GET | [`admin.estatisticas`](Controller/admin.py#L78) | `admin_estatisticas.html` | Acerto por pergunta; com `?graficos=1` mostra as pizzas; `?p=<id>` filtra perguntas. |
+| `/admin/estatisticas/pdf` | GET | [`admin.estatisticas_pdf`](Controller/admin.py#L90) | — (PDF) | Baixa o relatório de estatísticas. |
+| `/admin/jornadas` | GET | [`admin.jornadas`](Controller/admin.py#L99) | `admin_jornadas.html` | Indicadores, média por jogador e lista de jornadas. |
+| `/admin/jornadas/pdf` | GET | [`admin.jornadas_pdf`](Controller/admin.py#L113) | — (PDF) | Baixa o relatório de jornadas. |
+| `/admin/avaliacoes` | GET | [`admin.avaliacoes`](Controller/admin.py#L143) | `admin_avaliacoes.html` | Indicadores, gráficos das notas e lista de avaliações/sugestões; `?comentarios=1` mostra só as com sugestão escrita. |
+| `/admin/avaliacoes/pdf` | GET | [`admin.avaliacoes_pdf`](Controller/admin.py#L152) | — (PDF) | Baixa o relatório de avaliações. |
+| `/admin/jornadas/limpar` | POST | [`admin.limpar_jornadas`](Controller/admin.py#L122) | — | Apaga todo o histórico (jornadas, respostas e avaliações). |
+| `/admin/perguntas` | GET | [`admin.perguntas`](Controller/admin.py#L168) | `admin_perguntas.html` | Lista as perguntas. |
+| `/admin/perguntas/nova` | GET/POST | [`admin.nova_pergunta`](Controller/admin.py#L209) | `admin_form_pergunta.html` | Cadastra pergunta. |
+| `/admin/perguntas/<id>/editar` | GET/POST | [`admin.editar_pergunta`](Controller/admin.py#L221) | `admin_form_pergunta.html` | Edita pergunta. |
+| `/admin/perguntas/<id>/excluir` | POST | [`admin.excluir_pergunta`](Controller/admin.py#L235) | — | Exclui pergunta (o histórico dela é mantido). |
+| `/admin/perguntas/adicionar-padrao` | POST | [`admin.adicionar_perguntas_padrao`](Controller/admin.py#L241) | — | Adiciona as perguntas padrão que ainda não estão no banco, sem apagar nem alterar nenhuma. |
+| `/admin/perguntas/restaurar` | POST | [`admin.restaurar_perguntas`](Controller/admin.py#L247) | — | Troca **todas** as perguntas pelas padrão. |
 | `/estilo/style.css` | GET | (Flask) | — | Arquivo de estilo. |
 
-Todas as rotas `/admin/...` exceto o login passam antes por [`exigir_acesso`](Controller/admin.py#L23), que
+Todas as rotas `/admin/...` exceto o login passam antes por [`exigir_acesso`](Controller/admin.py#L38), que
 manda para o login quem não digitou o PIN.
 
 ---
@@ -341,8 +342,7 @@ manda para o login quem não digitou o PIN.
 
 | Função | O que faz |
 |---|---|
-| `numero_jogador(codigo)` | Número do jogador dono do código da sessão, ou `None` (código desconhecido, ex.: histórico limpo). |
-| `novo_jogador()` | Cria o próximo jogador e devolve `(numero, codigo)`. |
+| `novo_jogador()` | Devolve o próximo número de jogador (1, 2, 3…); chamado uma vez por jornada concluída. |
 | `rotulo_jogador(numero)` | Texto gravado e exibido: `"Jogador N"`. Mude aqui para trocar o rótulo (ex.: "Viajante N"). |
 
 *Jornadas e estatísticas*
@@ -353,7 +353,7 @@ manda para o login quem não digitou o PIN.
 | `_montar_resposta(linha)` / `_montar_partida(linha, respostas)` | Montam os dicionários usados pelas telas (`acertou`, `erros`, `taxa`, data no fuso…). |
 | `obter_partida(id)` | Uma jornada com suas respostas (tela de resultado). |
 | `listar_partidas()` | Todas as jornadas, mais recentes primeiro, cada uma com `numero` (#1 = a mais antiga). Faz só 2 consultas no total. |
-| `medias_por_participante(partidas)` | Agrupa as jornadas por jogador e calcula a média de aproveitamento, acertos por jornada e número de jornadas. Jornadas antigas sem rótulo viram o grupo "Sem identificação", sempre por último. |
+| `medias_por_participante(partidas)` | Agrupa as jornadas pelo rótulo (hoje cada jornada tem um número próprio, então cada barra é uma jornada) e calcula a média de aproveitamento, acertos por jornada e número de jornadas. Jornadas antigas sem rótulo viram o grupo "Sem identificação", sempre por último. |
 | `resumo_partidas()` | Totais gerais: jornadas, respostas, acertos, erros e taxa. |
 | `estatisticas_por_pergunta()` | Acertos/erros/taxa de cada pergunta, somados em SQL a partir de `respostas`. Inclui perguntas sem respostas e perguntas já excluídas que têm histórico. |
 | `limpar_partidas()` | Apaga todas as jornadas (e, em cascata, as respostas e avaliações) e recomeça a numeração do "Jogador 1". |
@@ -390,14 +390,12 @@ acerte só escolhendo o texto mais longo. Mantenha esse cuidado ao escrever perg
 ### [Controller/jogo.py](Controller/jogo.py)
 
 A sessão guarda `session['jogo'] = {'perguntas': [ids sorteados], 'indice': posição, 'respostas': [...]}`,
-além de `session['jogador']` (código do jogador, para manter o mesmo número em "Nova Jornada") e
-`session['ultima_partida']` (id para o resultado).
+além de `session['ultima_partida']` (id da jornada, para a tela de resultado).
 
 | Função | O que faz |
 |---|---|
-| `_numero_jogador()` | Número do jogador deste navegador; se ainda não tem (ou o histórico foi limpo), cria o próximo. |
 | `_pergunta_atual(jogo)` | Pergunta da posição atual; pula as que o admin excluiu durante a partida. |
-| `_finalizar(jogo)` | Tira o jogo da sessão, grava a jornada como "Jogador N" e manda para o resultado. |
+| `_finalizar(jogo)` | Tira o jogo da sessão, grava a jornada com o próximo número ("Jogador N") e manda para o resultado. |
 | `iniciar()` | Sorteia `PERGUNTAS_POR_JORNADA` perguntas (sem repetir, em ordem aleatória) e começa. |
 | `pergunta()` | Mostra a pergunta atual e, se já respondida, o feedback e o botão de avançar. |
 | `responder()` | Valida e guarda a alternativa escolhida (impede responder duas vezes). |
@@ -564,9 +562,9 @@ O fundo azul da página está no seletor `body` (gradiente logo abaixo de `:root
 | Quero mudar… | Onde |
 |---|---|
 | **PIN do admin** | Vercel (produção): variável `QUIZ_PIN_ADMIN` em *Settings → Environment Variables* + *Redeploy*. Local: o padrão `1234` em [Model/config.py linha 10](Model/config.py#L10) — ou defina `QUIZ_PIN_ADMIN` no terminal antes de `python app.py` (PowerShell: `$env:QUIZ_PIN_ADMIN = '...'`). Não grave o PIN real no código: o repositório é público. |
-| Fuso horário | Variável `QUIZ_FUSO` ou [config.py linha 22](Model/config.py#L22) (ex.: `America/Manaus`). |
-| Quantas perguntas por jornada | [config.py `PERGUNTAS_POR_JORNADA`](Model/config.py#L28) (a fala do menu acompanha). |
-| Rótulo "Jogador N" | [`rotulo_jogador`](Model/repositorio.py#L115) em repositorio.py. |
+| Fuso horário | Variável `QUIZ_FUSO` ou [config.py linha 44](Model/config.py#L44) (ex.: `America/Manaus`). |
+| Quantas perguntas por jornada | [config.py `PERGUNTAS_POR_JORNADA`](Model/config.py#L50) (a fala do menu acompanha). |
+| Rótulo "Jogador N" | [`rotulo_jogador`](Model/repositorio.py#L113) em repositorio.py. |
 | Porta do servidor local | [app.py, última linha](app.py#L37) (`port=5000`). |
 | Banco usado | Sem `DATABASE_URL` → SQLite `quiz.db`; com `DATABASE_URL` → PostgreSQL. |
 
@@ -581,10 +579,10 @@ O fundo azul da página está no seletor `body` (gradiente logo abaixo de `:root
 | Insígnia "Ordem da Cibersegurança & LGPD" | [menuprincipal.html linha 17](View/Página/menuprincipal.html#L17). |
 | Frases do jogo ("O Guardião indaga", "Escudo Intacto!"…) | [jogo.html](View/Página/jogo.html#L25-L58). |
 | **Títulos conquistados** (patentes) e as faixas de % | [resultado.html linhas 9–21](View/Página/resultado.html#L9-L21) (100% = Mestre, ≥70 = Paladino, ≥40 = Escudeiro, resto = Aprendiz). |
-| **Mensagem final** ("Muito bem!", "Continue praticando!") | [Controller/jogo.py, função `_tela_resultado`](Controller/jogo.py#L125). Use as mesmas faixas das patentes. |
+| **Mensagem final** ("Muito bem!", "Continue praticando!") | [Controller/jogo.py, função `_tela_resultado`](Controller/jogo.py#L117). Use as mesmas faixas das patentes. |
 | Texto das abas do admin | [admin.html](View/Página/admin.html#L10-L13). |
-| **Perguntas da avaliação** (texto, títulos dos gráficos, significado das notas 1 e 10) | [`CRITERIOS_AVALIACAO`](Model/config.py#L35) em config.py. Não mude a `chave`. |
-| Escala da avaliação (1 a 10) | [`NOTA_MAXIMA`](Model/config.py#L33). |
+| **Perguntas da avaliação** (texto, títulos dos gráficos, significado das notas 1 e 10) | [`CRITERIOS_AVALIACAO`](Model/config.py#L57) em config.py. Não mude a `chave`. |
+| Escala da avaliação (1 a 10) | [`NOTA_MAXIMA`](Model/config.py#L55). |
 | Aviso "Sua jornada não termina aqui!" (indica que há informações e a avaliação mais abaixo) | [resultado.html](View/Página/resultado.html), link `aviso-rolar`. |
 | Quadro **"Por que isso importa?"** (ODS 16, ODS 10, LGPD e a frase final) | [resultado.html](View/Página/resultado.html), seção `cartao-importancia`. |
 | **Aviso de privacidade** ("Como seus dados são usados" e o responsável pelo projeto) | [menuprincipal.html](View/Página/menuprincipal.html#L28-L42), bloco `aviso-privacidade`. Se mudar o que o app grava, atualize este texto. |
@@ -599,7 +597,7 @@ O fundo azul da página está no seletor `body` (gradiente logo abaixo de `:root
 - bloco `titulo` de cada template (`base.html`, `admin*.html`, `jogo.html`, `resultado.html`, `sem_perguntas.html`);
 - o brasão em [_guardiao.html, macro `titulo_medieval`](View/Página/_guardiao.html#L271) (textos "O GUARDIÃO" e "DOS DADOS" do SVG e o `<h1>` escondido usado por leitores de tela);
 - [`NOME_APP` em relatorio_pdf.py](Controller/relatorio_pdf.py#L18) (título e rodapé dos PDFs);
-- o prefixo do arquivo baixado `guardiao-` em [`_baixar_pdf`](Controller/admin.py#L141);
+- o prefixo do arquivo baixado `guardiao-` em [`_baixar_pdf`](Controller/admin.py#L156);
 - títulos do `README.md` e deste manual.
 
 Dica: no VS Code, **Ctrl+Shift+F** procurando "Guardião dos Dados" lista todos.
@@ -621,16 +619,16 @@ Dica: no VS Code, **Ctrl+Shift+F** procurando "Guardião dos Dados" lista todos.
 
 | Quero mudar… | Onde |
 |---|---|
-| Sorteio das perguntas | [`jogo.iniciar`](Controller/jogo.py#L43) usa `random.sample` (sem repetição). Para voltar à ordem fixa de cadastro, troque o sorteio por `ids[:PERGUNTAS_POR_JORNADA]`. |
-| Fórmula da porcentagem | [`percentual_acerto`](Model/repositorio.py#L138) (vale para o site e os PDFs). |
-| Média por jogador (agrupamento) | [`medias_por_participante`](Model/repositorio.py#L198). |
+| Sorteio das perguntas | [`jogo.iniciar`](Controller/jogo.py#L35) usa `random.sample` (sem repetição). Para voltar à ordem fixa de cadastro, troque o sorteio por `ids[:PERGUNTAS_POR_JORNADA]`. |
+| Fórmula da porcentagem | [`percentual_acerto`](Model/repositorio.py#L136) (vale para o site e os PDFs). |
+| Média por jogador (agrupamento) | [`medias_por_participante`](Model/repositorio.py#L196). |
 | Número de alternativas | Exige mexer em vários pontos juntos: `LETRAS` e `QTD_ALTERNATIVAS` em config.py, o atalho de teclado em [jogo.html](View/Página/jogo.html#L83-L84) (`'ABCDE'` e `[1-5]`), as perguntas de `perguntas_iniciais.py` e as perguntas já cadastradas no banco. |
 
 ### Banco de dados
 
 | Quero… | Como |
 |---|---|
-| Adicionar uma coluna | 1) inclua no `ESQUEMA` de [banco.py](Model/banco.py#L24) (para bancos novos); 2) em [`_atualizar_esquema`](Model/banco.py#L158) adicione um `if not _coluna_existe(...)` com o `ALTER TABLE` (para bancos já existentes, como o Neon); 3) ajuste as consultas em `repositorio.py`. |
+| Adicionar uma coluna | 1) inclua no `ESQUEMA` de [banco.py](Model/banco.py#L24) (para bancos novos); 2) em [`_atualizar_esquema`](Model/banco.py#L157) adicione um `if not _coluna_existe(...)` com o `ALTER TABLE` (para bancos já existentes, como o Neon); 3) ajuste as consultas em `repositorio.py`. |
 | Zerar o banco local | Pare o servidor e apague o arquivo `quiz.db` — ele é recriado na próxima execução. |
 | Zerar só o histórico | Área admin → Registro de Jornadas → **Limpar histórico**. |
 
@@ -706,7 +704,10 @@ Se sair uma edição nova dessas pesquisas, atualize os números e as fontes jun
 - **Dependências novas** precisam entrar no `requirements.txt`, senão funcionam no seu computador mas falham
   no Vercel.
 - **Sessão no Vercel**: sem `QUIZ_SECRET_KEY` definida, jogadores podem perder a jornada no meio.
-- **SQLite no Vercel** (sem Neon) funciona, mas os dados somem a cada reinício — use sempre o Neon em produção.
+- **Dados "reiniciando" no Vercel?** É o sintoma de site sem PostgreSQL: sem `DATABASE_URL`, cada servidor do
+  Vercel cria o próprio SQLite temporário em `/tmp`, e as jornadas somem a cada reinício ou troca de servidor. A área
+  administrativa mostra um alerta vermelho nesse caso. Solução: conectar o banco Neon ao projeto (*Storage*) e fazer
+  *Redeploy*.
 - **Modo debug**: `python app.py` roda com `debug=True`, que recarrega o servidor ao salvar arquivos. É só
   para uso local; o Vercel não usa esse trecho.
 - **Faixas de resultado em dois lugares**: as patentes (resultado.html) e as mensagens (jogo.py) usam as mesmas

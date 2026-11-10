@@ -12,7 +12,6 @@ Os textos, números e fontes ficam na lista SLIDES abaixo. O link do app fica em
 Como no manual, o Microsoft Edge ou o Google Chrome "imprime" as páginas em PDF (precisa de internet para as fontes).
 """
 import shutil
-import subprocess
 import sys
 import tempfile
 from html import escape
@@ -21,7 +20,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gerar_manual_pdf import achar_navegador  # noqa: E402  (mesma busca pelo Edge/Chrome)
+from gerar_manual_pdf import imprimir_pdf  # noqa: E402  (mesma impressão com Edge/Chrome)
 
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_DOCS = RAIZ / 'docs'
@@ -631,24 +630,20 @@ def _documento(titulo, css, corpo):
 <style>html, body {{ min-height: 0 !important; }} {css}</style></head><body>{corpo}</body></html>"""
 
 
-def imprimir(html, destino_final, navegador, pasta):
+def imprimir(html, destino_final, pasta):
     pagina = Path(pasta) / (destino_final.stem.replace(' ', '_') + '.html')
     pagina.write_text(html, encoding='utf-8')
     destino = Path(pasta) / 'saida.pdf'
-    subprocess.run([
-        navegador, '--headless=new', '--disable-gpu', '--no-pdf-header-footer', '--allow-file-access-from-files',
-        '--virtual-time-budget=15000', f'--user-data-dir={Path(pasta) / "perfil"}', f'--print-to-pdf={destino}', pagina.as_uri(),
-    ], check=True, capture_output=True, timeout=180)
+    imprimir_pdf(pagina, destino, pasta)
     shutil.copyfile(destino, destino_final)
     destino.unlink()
     print(f'PDF gerado: {destino_final}')
 
 
 def main():
-    navegador = achar_navegador()
-    with tempfile.TemporaryDirectory() as pasta:
-        imprimir(html_slides(), SAIDA_SLIDES, navegador, pasta)
-        imprimir(html_roteiro(), SAIDA_ROTEIRO, navegador, pasta)
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:  # o navegador pode demorar a soltar a pasta
+        imprimir(html_slides(), SAIDA_SLIDES, pasta)
+        imprimir(html_roteiro(), SAIDA_ROTEIRO, pasta)
 
 
 if __name__ == '__main__':
