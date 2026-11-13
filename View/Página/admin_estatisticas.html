@@ -47,7 +47,7 @@
                     <td class="num">{{ est.erros }}</td>
                     <td>
                         <div class="taxa">
-                            <div class="taxa-trilho"><div class="taxa-preenchida" style="width: {{ est.taxa or 0 }}%"></div></div>
+                            <div class="taxa-trilho"><div class="taxa-preenchida" {{ estilo_percentual('width', est.taxa) }}></div></div>
                             <span class="taxa-valor">{{ percentual(est.taxa) }}</span>
                         </div>
                     </td>
@@ -78,7 +78,6 @@
 
 {% block scripts %}
 <script>
-    // "Marcar todas": só aparece com JavaScript ativo; sem ele as caixas individuais continuam funcionando.
     (function () {
         var todas = document.getElementById('marcar-todas');
         var caixas = Array.prototype.slice.call(document.querySelectorAll('.marcar-pergunta'));

@@ -20,20 +20,18 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gerar_manual_pdf import imprimir_pdf  # noqa: E402  (mesma impressão com Edge/Chrome)
+from gerar_manual_pdf import imprimir_pdf
 
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_DOCS = RAIZ / 'docs'
 SAIDA_SLIDES = PASTA_DOCS / 'Apresentação - O Guardião dos Dados.pdf'
 SAIDA_ROTEIRO = PASTA_DOCS / 'Roteiro da apresentação.pdf'
 
-LINK_APP = 'https://oguardiadosdados.vercel.app/'
+LINK_APP = 'https://o-guardiao-dos-dados.vercel.app/'
 AUTOR = 'Bruno Fioravanti Barbosa'
 CURSO = 'CST em Redes de Computadores · UNINTER'
 DISCIPLINA = 'Atividade Extensionista II: Tecnologia Aplicada à Inclusão Digital — Projeto'
 
-
-# ---------- Desenhos do próprio jogo (macros de View/Página/_guardiao.html) ----------
 
 def _macro(chamada):
     ambiente = Environment(loader=FileSystemLoader(str(RAIZ / 'View' / 'Página')))
@@ -52,8 +50,6 @@ def _qr_code():
         return ''
     return segno.make(LINK_APP, error='m').svg_inline(scale=7, dark='#102e3f', light='#ffffff', border=2)
 
-
-# ---------- Peças reutilizáveis dos slides ----------
 
 def colunas(dados, unidade='', maximo=None, destaque=None):
     """Gráfico de colunas: dados = [(rótulo, valor, texto_do_valor)]."""
@@ -91,8 +87,6 @@ def cartao_ataque(icone, titulo, golpe, defesa):
     return (f'<div class="ataque"><div class="ataque-titulo"><span class="icone">{icone}</span>{titulo}</div>'
             f'<p class="golpe">{golpe}</p><p class="defesa"><b>Defesa:</b> {defesa}</p></div>')
 
-
-# ---------- Conteúdo: (título, rótulo, html, fonte, roteiro de fala, tempo em segundos) ----------
 
 SLIDES = [
     {
@@ -363,7 +357,7 @@ SLIDES = [
                 <div class="pilar"><span class="icone">⚙️</span><h3>Tecnologias</h3>
                     <p>Python + Flask, PostgreSQL (Neon), hospedagem no <b>Vercel</b> e versionamento no <b>GitHub</b>.</p></div>
             </div>
-            <p class="mensagem">Aplicação com o público de <b>Nova Iguaçu (RJ)</b>: os dados mostram o que a população já
+            <p class="mensagem">Aplicação com o público de <b>Campo Grande (RJ)</b>: os dados mostram o que a população já
                sabe — e onde a informação precisa chegar.</p>''',
         'fonte': '',
         'fala': 'Para validar o projeto, ao final cada participante avalia de 1 a 10 a dificuldade das perguntas, a '
@@ -422,8 +416,6 @@ SLIDES = [
     },
 ]
 
-
-# ---------- Estilo (cores e fontes de View/Estilo/style.css) ----------
 
 CSS = """
 @page { size: 1280px 720px; margin: 0; }
@@ -537,7 +529,6 @@ body { font-family: "Segoe UI", system-ui, Arial, sans-serif; color: var(--texto
         border-radius: 16px; font-size: 17px; line-height: 1.45; columns: 2; column-gap: 38px; }
 .refs li { margin-bottom: 13px; break-inside: avoid; }
 
-/* Capa e encerramento */
 .capa, .final { display: grid; align-items: center; padding: 50px 70px; }
 .capa { grid-template-columns: 1.35fr 1fr; gap: 30px; }
 .capa .emblema-titulo-medieval { width: 640px; margin: 18px 0 8px; max-width: none; }
@@ -554,7 +545,7 @@ body { font-family: "Segoe UI", system-ui, Arial, sans-serif; color: var(--texto
 .final-esquerda .guardiao-retrato { width: 280px; height: 280px; }
 .final-chamada { margin: 0; font-family: "Cinzel", serif; font-weight: 800; font-size: 44px; color: #fde68a; line-height: 1.15; }
 .final-texto { margin: 14px 0 26px; font-size: 20px; color: #cbd5e1; }
-.final-link { display: inline-block; padding: 16px 28px; border-radius: 999px; font-size: 26px; font-weight: 800; color: #fff;
+.final-link { display: inline-block; padding: 16px 28px; border-radius: 999px; font-size: 22px; white-space: nowrap; font-weight: 800; color: #fff;
               text-decoration: none; background: linear-gradient(180deg, #2e6f8e, #173d52); border: 2px solid var(--borda-ouro);
               box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
 .final-obrigado { margin: 34px 0 6px; font-family: "Cinzel Decorative", "Cinzel", serif; font-size: 40px; font-weight: 900; color: #fde68a; }
@@ -641,7 +632,7 @@ def imprimir(html, destino_final, pasta):
 
 
 def main():
-    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:  # o navegador pode demorar a soltar a pasta
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:
         imprimir(html_slides(), SAIDA_SLIDES, pasta)
         imprimir(html_roteiro(), SAIDA_ROTEIRO, pasta)
 

@@ -25,8 +25,6 @@ def _ler_data(texto):
     return data.astimezone(FUSO)
 
 
-# ---------- Perguntas ----------
-
 def _montar_pergunta(linha):
     return {
         'id': linha['id'],
@@ -95,8 +93,6 @@ def adicionar_perguntas_faltantes():
     return len(novas)
 
 
-# ---------- Jogadores (identificação anônima: "Jogador 1", "Jogador 2"...) ----------
-
 def novo_jogador():
     """Próximo número de jogador (1, 2, 3...), um por jornada concluída.
 
@@ -114,13 +110,10 @@ def rotulo_jogador(numero):
     return f'Jogador {numero}'
 
 
-# ---------- Partidas (respostas) ----------
-
 def registrar_partida(respostas, participante=None):
     """Grava uma partida. Cada resposta: {pergunta_id, enunciado, escolhida, correta}. Retorna o id da partida."""
     conexao = obter()
     acertos = sum(1 for r in respostas if r['escolhida'] == r['correta'])
-    # RETURNING id funciona no SQLite e no PostgreSQL (lastrowid só existe no SQLite).
     partida_id = conexao.execute(
         'INSERT INTO partidas (data, total, acertos, participante) VALUES (?, ?, ?, ?) RETURNING id',
         (agora().isoformat(timespec='seconds'), len(respostas), acertos, participante or None),
@@ -139,7 +132,6 @@ def percentual_acerto(acertos, total):
     Usado na tela, nos gráficos e no PDF, para que todos mostrem exatamente o mesmo número.
     """
     return (acertos * 200 + total) // (total * 2) if total else None
-
 
 
 def _montar_resposta(linha):
@@ -264,8 +256,6 @@ def estatisticas_por_pergunta():
     return lista
 
 
-# ---------- Avaliações do quiz (validação, respondida ao final da jornada) ----------
-
 CHAVES_AVALIACAO = [c['chave'] for c in CRITERIOS_AVALIACAO]
 
 
@@ -324,7 +314,7 @@ def resumo_avaliacoes(avaliacoes):
 def limpar_partidas():
     """Apaga o histórico (jornadas, respostas e avaliações) e recomeça a numeração do "Jogador 1"."""
     conexao = obter()
-    conexao.execute('DELETE FROM partidas')  # respostas e avaliações são apagadas em cascata
+    conexao.execute('DELETE FROM partidas')
     if USA_POSTGRES:
         conexao.execute('TRUNCATE jogadores RESTART IDENTITY')
     else:

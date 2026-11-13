@@ -14,7 +14,6 @@ from Model.perguntas_iniciais import PERGUNTAS_INICIAIS
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-# Globais (e não context processor) para ficarem visíveis também dentro de macros importadas, como _graficos.html.
 admin_bp.add_app_template_global(fatias_pizza)
 admin_bp.add_app_template_global(repositorio.percentual_acerto)
 
@@ -40,8 +39,6 @@ def exigir_acesso():
         return redirect(url_for('admin.login'))
 
 
-# ---------- Acesso ----------
-
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     erro = False
@@ -63,8 +60,6 @@ def sair():
 def inicio():
     return redirect(url_for('admin.estatisticas'))
 
-
-# ---------- Estatísticas por pergunta ----------
 
 def _estatisticas_selecionadas():
     """Estatísticas das perguntas marcadas na tela (parâmetro ?p=<id>, repetido); sem marcação, todas."""
@@ -92,8 +87,6 @@ def estatisticas_pdf():
     pdf = relatorio_pdf.relatorio_estatisticas(repositorio.resumo_partidas(), selecionadas, filtrado=bool(marcadas))
     return _baixar_pdf(pdf, 'estatisticas')
 
-
-# ---------- Registro de jornadas (cada conclusão do questionário) ----------
 
 @admin_bp.get('/jornadas')
 def jornadas():
@@ -124,8 +117,6 @@ def limpar_jornadas():
     return redirect(url_for('admin.jornadas'))
 
 
-# ---------- Avaliações do quiz (validação: notas de 1 a 10 e sugestões) ----------
-
 def _dados_avaliacoes():
     avaliacoes = repositorio.listar_avaliacoes()
     jornadas = repositorio.resumo_partidas()['partidas']
@@ -133,7 +124,6 @@ def _dados_avaliacoes():
         'avaliacoes': avaliacoes,
         'criterios': repositorio.resumo_avaliacoes(avaliacoes),
         'jornadas': jornadas,
-        # Quantas jornadas concluídas foram avaliadas (taxa de resposta da validação).
         'taxa_resposta': repositorio.percentual_acerto(len(avaliacoes), jornadas),
         'com_comentario': sum(1 for a in avaliacoes if a['comentario']),
     }
@@ -161,8 +151,6 @@ def _baixar_pdf(conteudo, nome):
         download_name=f'guardiao-{nome}-{repositorio.agora():%Y-%m-%d}.pdf',
     )
 
-
-# ---------- Perguntas ----------
 
 @admin_bp.get('/perguntas')
 def perguntas():

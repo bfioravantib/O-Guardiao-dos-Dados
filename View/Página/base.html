@@ -22,8 +22,6 @@
         </main>
         {% endblock %}
 
-        {# Confirmação das ações destrutivas: formulários com data-confirmar="mensagem" abrem esta janela
-           (no lugar do confirm() do navegador, cujo título não pode ser alterado). #}
         <dialog id="dialogo-confirmacao" class="dialogo" aria-labelledby="dialogo-titulo">
             <form method="dialog">
                 <h3 id="dialogo-titulo" class="titulo-epico">⚜️ O Guardião</h3>
@@ -42,7 +40,7 @@
                     var mensagem = formulario.getAttribute('data-confirmar');
                     if (!mensagem) return;
                     evento.preventDefault();
-                    if (!dialogo.showModal) {  // navegador muito antigo, sem <dialog>
+                    if (!dialogo.showModal) {
                         if (window.confirm(mensagem)) formulario.submit();
                         return;
                     }

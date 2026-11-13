@@ -18,9 +18,6 @@ from Model.perguntas_iniciais import PERGUNTAS_INICIAIS
 
 USA_POSTGRES = bool(URL_BANCO)
 
-# respostas.pergunta_id não tem chave estrangeira de propósito: o histórico continua
-# agrupável mesmo depois que a pergunta é excluída (o enunciado fica copiado na resposta).
-# {ID} vira a coluna de chave primária autoincrementada de cada banco.
 ESQUEMA = """
 CREATE TABLE IF NOT EXISTS perguntas (
     id           {ID},
@@ -49,17 +46,11 @@ CREATE TABLE IF NOT EXISTS respostas (
 """
 COLUNA_ID = 'SERIAL PRIMARY KEY' if USA_POSTGRES else 'INTEGER PRIMARY KEY AUTOINCREMENT'
 
-# Tabelas criadas depois da primeira versão. Ficam fora do ESQUEMA porque são criadas por _atualizar_esquema(),
-# tanto em bancos novos quanto nos que já existiam (o quiz.db local e o Neon).
 TABELAS_ADICIONAIS = [
-    # Numeração anônima dos jogadores: o id gerado pelo banco é o número do "Jogador N" (sem repetir, mesmo com
-    # vários acessos simultâneos). Cada jornada concluída gera uma linha; o código aleatório não identifica ninguém.
     """CREATE TABLE IF NOT EXISTS jogadores (
     id     {ID},
     codigo TEXT NOT NULL UNIQUE
 )""",
-    # Avaliação do quiz respondida ao final da jornada (notas de 1 a 10 e sugestão opcional), no máximo uma por
-    # jornada. Apagar a jornada ("Limpar histórico") apaga a avaliação junto.
     """CREATE TABLE IF NOT EXISTS avaliacoes (
     id          {ID},
     partida_id  INTEGER NOT NULL UNIQUE REFERENCES partidas(id) ON DELETE CASCADE,
@@ -107,7 +98,6 @@ def conectar():
         import psycopg
         from psycopg.rows import dict_row
 
-        # prepare_threshold=None: sem "prepared statements", que não combinam com o pool de conexões do Neon.
         bruta = psycopg.connect(URL_BANCO, row_factory=dict_row, prepare_threshold=None)
     else:
         bruta = sqlite3.connect(CAMINHO_BANCO)
@@ -166,7 +156,6 @@ def inicializar():
     """Cria as tabelas (com as perguntas padrão) quando o banco ainda não existe e atualiza bancos antigos."""
     with closing(conectar()) as conexao:
         if USA_POSTGRES:
-            # No Vercel várias instâncias podem iniciar ao mesmo tempo: a trava evita cadastrar as perguntas duas vezes.
             conexao.execute('SELECT pg_advisory_xact_lock(7240513)')
         if not _tabela_perguntas_existe(conexao):
             for comando in ESQUEMA.format(ID=COLUNA_ID).split(';'):
@@ -174,4 +163,4 @@ def inicializar():
                     conexao.execute(comando)
             inserir_perguntas_iniciais(conexao)
         _atualizar_esquema(conexao)
-        conexao.commit()  # também libera a trava do PostgreSQL
+        conexao.commit()

@@ -25,7 +25,6 @@ def _finalizar(jogo):
     session.pop('jogo', None)
     if not jogo['respostas']:
         return redirect(url_for('menu.inicio'))
-    # Cada jornada concluída recebe o próximo número: Jogador 1, Jogador 2, Jogador 3...
     participante = repositorio.rotulo_jogador(repositorio.novo_jogador())
     session['ultima_partida'] = repositorio.registrar_partida(jogo['respostas'], participante)
     return redirect(url_for('jogo.resultado'))
@@ -36,7 +35,6 @@ def iniciar():
     ids = [p['id'] for p in repositorio.listar_perguntas()]
     if not ids:
         return render_template('sem_perguntas.html')
-    # Sorteia as perguntas da jornada (ordem aleatória, sem repetir).
     sorteadas = random.sample(ids, min(PERGUNTAS_POR_JORNADA, len(ids)))
     session['jogo'] = {'perguntas': sorteadas, 'indice': 0, 'respostas': []}
     return redirect(url_for('jogo.pergunta'))
@@ -116,7 +114,7 @@ def resultado():
 
 def _tela_resultado(partida, erro=None, preenchido=None):
     """Tela final: placar, título conquistado e o formulário de avaliação (ou o agradecimento, se já avaliou)."""
-    percentual = partida['taxa']  # mesmo arredondamento do registro de jornadas
+    percentual = partida['taxa']
     if percentual == 100:
         mensagem = 'Perfeito! Você acertou todas.'
     elif percentual >= 70:
@@ -149,7 +147,6 @@ def avaliar():
     notas = {c['chave']: request.form.get(c['chave'], type=int) for c in CRITERIOS_AVALIACAO}
     comentario = (request.form.get('comentario') or '').strip()[:TAMANHO_MAXIMO_COMENTARIO]
     if not all(nota is not None and 1 <= nota <= NOTA_MAXIMA for nota in notas.values()):
-        # Devolve a tela com o que já foi preenchido, para a pessoa não perder o comentário.
         return _tela_resultado(partida, 'Escolha uma nota de 1 a %d em cada pergunta.' % NOTA_MAXIMA,
                                {**notas, 'comentario': comentario}), 400
     repositorio.registrar_avaliacao(partida['id'], notas, comentario)

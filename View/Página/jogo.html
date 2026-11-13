@@ -7,7 +7,7 @@
 {% block abaixo_topo %}
 {% set concluidas = numero if resposta else numero - 1 %}
 <div class="progresso" role="progressbar" aria-valuenow="{{ concluidas }}" aria-valuemin="0" aria-valuemax="{{ total }}">
-    <div class="progresso-barra" style="width: {{ (concluidas / total * 100)|round(1) }}%"></div>
+    <div class="progresso-barra" {{ estilo_percentual('width', concluidas / total * 100) }}></div>
 </div>
 {% endblock %}
 
@@ -76,7 +76,6 @@
 {% block scripts %}
 {% if not resposta %}
 <script>
-    // Atalhos de teclado: A–E ou 1–5 escolhem a alternativa
     document.addEventListener('keydown', evento => {
         if (evento.ctrlKey || evento.altKey || evento.metaKey || evento.key.length !== 1) return;
         const tecla = evento.key.toUpperCase();

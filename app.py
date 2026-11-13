@@ -5,6 +5,7 @@ import secrets
 from flask import Flask
 
 from Controller.admin import admin_bp
+from Controller.graficos import estilo_percentual
 from Controller.jogo import jogo_bp
 from Controller.menu import menu_bp
 from Model import banco
@@ -27,12 +28,12 @@ def criar_app():
         static_folder=str(RAIZ / 'View' / 'Estilo'),
         static_url_path='/estilo',
     )
-    # Sem QUIZ_SECRET_KEY definida, uma chave aleatória é gerada a cada início (sessões abertas se perdem ao reiniciar).
     app.config['SECRET_KEY'] = os.environ.get('QUIZ_SECRET_KEY') or secrets.token_hex(32)
 
     banco.inicializar()
     app.teardown_appcontext(banco.fechar)
     app.after_request(_paginas_sem_cache)
+    app.add_template_global(estilo_percentual)
 
     app.register_blueprint(menu_bp)
     app.register_blueprint(jogo_bp)
@@ -40,7 +41,6 @@ def criar_app():
     return app
 
 
-# Instância no nível do módulo: usada pelo Vercel (e por servidores WSGI como gunicorn).
 app = criar_app()
 
 if __name__ == '__main__':

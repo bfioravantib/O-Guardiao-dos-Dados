@@ -1,5 +1,4 @@
 :root {
-    /* Paleta RPG Épico — A Cidadela dos Dados (Pergaminho Claro) */
     --primaria: #1e526b;
     --primaria-escura: #102e3f;
     --ouro: #c89223;
@@ -58,7 +57,6 @@ p { margin: 0 0 0.75rem; }
 .centro { text-align: center; }
 [hidden] { display: none !important; }
 
-/* ---------- Emblema de Título Medieval ("O Guardião dos Dados") ---------- */
 
 .emblema-titulo-medieval {
     margin: 0.1rem auto 0.85rem;
@@ -73,7 +71,6 @@ p { margin: 0 0 0.75rem; }
     filter: drop-shadow(0 6px 14px rgba(10, 26, 38, 0.25));
 }
 
-/* ---------- Insígnias e Personagem (O Guardião) ---------- */
 
 .insignia-ordem {
     display: inline-block;
@@ -127,7 +124,6 @@ p { margin: 0 0 0.75rem; }
     animation: alerta 0.45s ease;
 }
 
-/* ---------- Botões ---------- */
 
 .botao {
     display: inline-flex;
@@ -186,7 +182,6 @@ p { margin: 0 0 0.75rem; }
 .acoes-centro { justify-content: center; }
 .acoes form { margin: 0; }
 
-/* ---------- Cartões (Estilo Pergaminho Real) ---------- */
 
 .cartao {
     background: var(--superficie);
@@ -199,7 +194,6 @@ p { margin: 0 0 0.75rem; }
 }
 .cartao-estreito { max-width: 380px; margin-inline: auto; }
 
-/* ---------- Menu principal com Guardião Gigante ao Fundo ---------- */
 
 .tela-menu {
     min-height: 100vh;
@@ -276,7 +270,6 @@ p { margin: 0 0 0.75rem; }
 }
 .botao-admin:hover { background: rgba(30, 82, 107, 0.9); color: #fde68a; border-color: #fde68a; }
 
-/* ---------- Telas internas ---------- */
 
 .topo {
     display: grid;
@@ -318,7 +311,6 @@ p { margin: 0 0 0.75rem; }
 
 .conteudo { max-width: 840px; margin: 0 auto; padding: 2rem 1rem; }
 
-/* ---------- Jogo & Diálogo do Guardião ---------- */
 
 .dialogo-guardiao {
     display: flex;
@@ -357,7 +349,6 @@ p { margin: 0 0 0.75rem; }
     box-shadow: 0 4px 12px rgba(16, 46, 63, 0.06);
 }
 
-/* Seta do balão apontando para o Guardião */
 .balao-fala::before {
     content: "";
     position: absolute;
@@ -457,7 +448,6 @@ p { margin: 0 0 0.75rem; }
     margin-bottom: 0.3rem;
 }
 
-/* ---------- Resultado ---------- */
 
 .cabecalho-resultado { margin-bottom: 0.5rem; }
 .cabecalho-resultado h2 { font-size: 1.85rem; margin-bottom: 0.25rem; }
@@ -505,7 +495,6 @@ p { margin: 0 0 0.75rem; }
 .marca.acerto { background: var(--sucesso); }
 .marca.erro { background: var(--erro); }
 
-/* ---------- Administração ---------- */
 
 .abas { display: flex; gap: 0.35rem; margin-bottom: 1.25rem; border-bottom: 2px solid rgba(213, 180, 108, 0.35); }
 .aba {
@@ -615,7 +604,6 @@ p { margin: 0 0 0.75rem; }
 
 .vazio { text-align: center; color: var(--texto-suave); padding: 1.5rem 0; margin: 0; }
 
-/* ---------- Formulários ---------- */
 
 .campo { display: block; margin: 0 0 1rem; padding: 0; border: 0; }
 .campo > span, .campo > legend { display: block; font-weight: 600; margin-bottom: 0.35rem; padding: 0; }
@@ -677,7 +665,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--ouro); box-shad
     .item-pergunta .acoes { width: 100%; justify-content: flex-start; }
 }
 
-/* ---------- Estatísticas, gráficos de pizza e registro de jornadas ---------- */
 
 .abas { flex-wrap: wrap; }
 .indicadores-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -783,7 +770,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--ouro); box-shad
     .legenda { font-size: 0.8rem; }
 }
 
-/* ---------- Avaliação do quiz (tela de resultado) e aba Avaliações ---------- */
 
 .acoes-final { margin: 0 0 1.5rem; }
 .acoes-final .botao-secundario { background: var(--superficie); }
@@ -807,7 +793,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--ouro); box-shad
 .form-avaliacao .campo { margin: 0; }
 .form-avaliacao textarea { width: 100%; }
 
-/* Aba Avaliações: um gráfico de colunas (quantas pessoas deram cada nota) por critério */
 .grade-avaliacoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
 .grafico-notas { margin: 0; padding: 1rem; border: 1px solid var(--borda); border-radius: 12px; background: #fff; }
 .grafico-notas figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.75rem; }
@@ -840,15 +825,14 @@ input:focus, textarea:focus { outline: none; border-color: var(--ouro); box-shad
     .notas-avaliacao { margin-left: 0; }
 }
 
-/* ---------- Quadro "Por que isso importa?", aviso de privacidade e janela de confirmação ---------- */
 
 .grade-importancia { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.9rem; margin-top: 1rem; }
 .item-importancia { padding: 1rem; border: 1px solid var(--borda); border-radius: 12px; background: #fff; }
 .item-importancia h4 { margin: 0.55rem 0 0.35rem; font-family: var(--fonte-epica); color: var(--primaria-escura); font-size: 1rem; }
 .item-importancia p { margin: 0; font-size: 0.92rem; }
 .selo-ods { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; color: #fff; }
-.selo-ods.ods-16 { background: #00689d; }  /* cor oficial do ODS 16 */
-.selo-ods.ods-10 { background: #dd1367; }  /* cor oficial do ODS 10 */
+.selo-ods.ods-16 { background: #00689d; }
+.selo-ods.ods-10 { background: #dd1367; }
 .selo-ods.selo-lei { background: var(--primaria-escura); }
 .chamada-importancia { margin: 1rem 0 0; padding: 0.75rem 1rem; border-radius: 10px; background: var(--ouro-claro); border: 1px solid var(--borda-ouro); font-weight: 600; text-align: center; }
 
@@ -862,7 +846,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--ouro); box-shad
 .dialogo h3 { margin-top: 0; }
 .dialogo p { margin: 0 0 0.5rem; }
 
-/* Aviso no topo do resultado indicando que há informações e a avaliação mais abaixo */
 html { scroll-behavior: smooth; }
 .aviso-rolar {
     display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1rem; padding: 0.8rem 1rem;
@@ -878,6 +861,5 @@ html { scroll-behavior: smooth; }
     .seta-rolar { animation: none; }
 }
 
-/* Alerta de configuração do Vercel no topo da área administrativa (banco temporário, chave de sessão) */
 .alerta-configuracao { margin: 0 0 1rem; padding: 0.85rem 1.1rem; border-radius: 12px; border: 2px solid var(--erro);
                        background: var(--erro-claro); color: #7f1d1d; font-weight: 600; line-height: 1.45; }

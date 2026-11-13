@@ -80,7 +80,6 @@ def ancora_github(texto, _separador='-'):
 
 def corpo_do_manual():
     texto = MANUAL.read_text(encoding='utf-8')
-    # O título, o autor e o aviso "também disponível em PDF" vão para a capa.
     linhas = texto.splitlines()
     linhas = [l for l in linhas if not l.startswith('# ') and not l.startswith('**Autor:**')
               and 'Também disponível em PDF' not in l and 'veja como atualizá-lo na' not in l]
@@ -89,12 +88,9 @@ def corpo_do_manual():
         extensions=['tables', 'fenced_code', 'sane_lists', 'toc'],
         extension_configs={'toc': {'slugify': ancora_github}},
     )
-    # Links para arquivos do código não funcionam no PDF: viram texto destacado (os de âncora e da web continuam).
     html = re.sub(r'<a href="(?!#|https?:)[^"]*">(.*?)</a>', r'<span class="ref-codigo">\1</span>', html)
-    # Código curto (fora dos blocos <pre>): pode quebrar a linha só depois de / _ . - , nunca no meio de uma palavra.
     html = re.sub(r'(?<!<pre>)<code>(.*?)</code>',
                   lambda m: '<code>' + re.sub(r'([/_.\-])', r'\1<wbr>', m.group(1)) + '</code>', html)
-    # O sumário vira um cartão; cada seção (##) começa numa página nova.
     html = html.replace('<h2 id="sumário">Sumário</h2>\n<ol>', '<h2 id="sumário">Sumário</h2>\n<ol class="sumario">', 1)
     return html
 
@@ -117,7 +113,6 @@ html, body { background: #fff !important; }
 body { margin: 0; min-height: 0; font-size: 10pt; line-height: 1.5; color: var(--texto);
        -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-/* Capa */
 .capa { page: capa; break-after: page; height: 297mm; display: flex; flex-direction: column; align-items: center;
         justify-content: center; gap: 8mm; text-align: center; color: #fef3c7;
         background: radial-gradient(circle at 50% 30%, #1d435b 0%, #102636 55%, #091722 100%); }
@@ -131,7 +126,6 @@ body { margin: 0; min-height: 0; font-size: 10pt; line-height: 1.5; color: var(-
               font-size: 10pt; color: #e2e8f0; line-height: 1.7; }
 .capa-dados strong { color: #fde68a; }
 
-/* Conteúdo */
 .manual h2 { break-before: page; margin: 0 0 5mm; padding-bottom: 2.5mm; font-family: var(--fonte-epica);
              font-size: 19pt; color: var(--primaria-escura); border-bottom: 2.5px solid var(--ouro); }
 .manual h2#sumário { break-before: avoid; }
@@ -158,7 +152,6 @@ body { margin: 0; min-height: 0; font-size: 10pt; line-height: 1.5; color: var(-
 .manual tr { break-inside: avoid; }
 .manual td:first-child { overflow-wrap: anywhere; }
 
-/* Sumário em forma de cartão */
 .manual ol.sumario { columns: 2; column-gap: 10mm; margin: 0 0 6mm; padding: 5mm 6mm 5mm 12mm; border: 2px solid var(--borda-ouro);
                      border-radius: 4mm; background: var(--superficie); font-family: var(--fonte-epica); font-weight: 700; }
 .manual ol.sumario li { margin: 1mm 0; break-inside: avoid; }
@@ -194,7 +187,7 @@ def montar_html():
 
 
 def main():
-    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:  # o navegador pode demorar a soltar a pasta
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as pasta:
         pagina = Path(pasta) / 'manual.html'
         pagina.write_text(montar_html(), encoding='utf-8')
         destino = Path(pasta) / 'manual.pdf'

@@ -1,7 +1,24 @@
 """Gráficos de pizza (acertos x erros) desenhados como SVG no servidor, sem biblioteca JavaScript."""
 from math import cos, pi, sin
 
+from markupsafe import Markup
+
 from Model.repositorio import percentual_acerto
+
+PROPRIEDADES_PERCENTUAIS = {'width', 'height', 'left'}
+
+
+def estilo_percentual(propriedade, valor):
+    """Atributo style com uma medida em %, ex.: estilo_percentual('width', 80) -> style="width: 80.0%".
+
+    Usado nas barras dos gráficos e na barra de progresso. Gerar o atributo inteiro (em vez de escrever
+    style="width: {{ valor }}%" no template) evita os falsos erros do verificador de CSS do VS Code e garante que
+    só um número entre no CSS.
+    """
+    if propriedade not in PROPRIEDADES_PERCENTUAIS:
+        raise ValueError(f'Propriedade não permitida: {propriedade}')
+    percentual = min(max(float(valor or 0), 0.0), 100.0)
+    return Markup(f'style="{propriedade}: {percentual:.1f}%"')
 
 
 def fatias_pizza(acertos, erros):
@@ -20,13 +37,12 @@ def fatias_pizza(acertos, erros):
     ]
 
     fatias = []
-    inicio = -pi / 2  # topo do círculo
+    inicio = -pi / 2
     for rotulo, classe, valor, percentual in partes:
         if not valor:
             continue
         fracao = valor / total
         if fracao == 1:
-            # Um arco SVG não fecha um círculo inteiro: usa dois semicírculos.
             d = 'M 0 -1 A 1 1 0 1 1 0 1 A 1 1 0 1 1 0 -1 Z'
         else:
             fim = inicio + fracao * 2 * pi

@@ -104,7 +104,6 @@ PERGUNTAS_INICIAIS = [
         ),
     },
 
-    # ---------- LGPD: agentes, fiscalização e direitos ----------
     {
         'enunciado': (
             'Toda organização que trata dados pessoais deve indicar um "Encarregado" (também chamado de DPO). '
@@ -257,7 +256,6 @@ PERGUNTAS_INICIAIS = [
         ),
     },
 
-    # ---------- ODS 16 e proteção de dados ----------
     {
         'enunciado': (
             'O Objetivo de Desenvolvimento Sustentável 16 da ONU ("Paz, Justiça e Instituições Eficazes") tem '
@@ -296,7 +294,6 @@ PERGUNTAS_INICIAIS = [
         ),
     },
 
-    # ---------- Golpes e boas práticas do dia a dia ----------
     {
         'enunciado': (
             'Chega um SMS: "Sua encomenda está retida. Pague a taxa de R$ 4,90 para liberar a entrega: '

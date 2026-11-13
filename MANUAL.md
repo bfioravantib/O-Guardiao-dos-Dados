@@ -430,6 +430,7 @@ além de `session['ultima_partida']` (id da jornada, para a tela de resultado).
 | Função | O que faz |
 |---|---|
 | `fatias_pizza(acertos, erros)` | Calcula o desenho SVG de cada fatia (verde = acertos, vermelho = erros), começando no topo, no sentido horário. Devolve lista vazia quando não há respostas. Usada pela macro `pizza` em `_graficos.html`. |
+| `estilo_percentual(propriedade, valor)` | Gera o atributo `style` das barras (ex.: `style="width: 80.0%"`) — gráficos, barra de taxa e barra de progresso do jogo. Aceita só `width`, `height` e `left`, e só números de 0 a 100. Registrada em `app.py` para todos os templates. |
 
 ### [Controller/relatorio_pdf.py](Controller/relatorio_pdf.py)
 
@@ -716,3 +717,5 @@ Se sair uma edição nova dessas pesquisas, atualize os números e as fontes jun
   no `<form>` (não use `onsubmit="return confirm(...)"`, que mostra a janela padrão do navegador).
 - **Aviso de privacidade**: ele descreve exatamente o que o app grava. Ao coletar um dado novo, atualize o texto em
   `menuprincipal.html` — é o princípio da transparência da LGPD.
+- **Medidas dinâmicas no HTML**: não escreva `style="width: {{ valor }}%"` nos templates — o verificador de CSS do
+  VS Code acusa erro (falso) e qualquer texto poderia entrar no CSS. Use `{{ estilo_percentual('width', valor) }}`.

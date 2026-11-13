@@ -16,9 +16,8 @@ from Model.config import NOTA_MAXIMA
 from Model.repositorio import agora, percentual_acerto
 
 NOME_APP = 'O Guardião dos Dados'
-LARGURA_UTIL = A4[0] - 4 * cm  # página A4 menos as margens laterais de 2 cm
+LARGURA_UTIL = A4[0] - 4 * cm
 
-# Mesmas cores da interface (style.css).
 AZUL = colors.HexColor('#1e526b')
 AZUL_ESCURO = colors.HexColor('#102e3f')
 VERDE = colors.HexColor('#216e43')
@@ -300,8 +299,6 @@ def relatorio_jornadas(resumo, partidas, participantes):
     return _gerar('Registro de jornadas', elementos)
 
 
-# ---------- Avaliações do quiz ----------
-
 def _media_nota(media):
     return '–' if media is None else f'{media:.1f}'.replace('.', ',')
 
@@ -309,7 +306,7 @@ def _media_nota(media):
 def _grafico_notas(criterio):
     """Colunas com quantas avaliações deram cada nota (1 a NOTA_MAXIMA), como na aba Avaliações."""
     largura, altura = LARGURA_UTIL, 4.6 * cm
-    base, topo = 1.1 * cm, altura - 0.9 * cm  # faixa vertical ocupada pelas colunas
+    base, topo = 1.1 * cm, altura - 0.9 * cm
     passo = largura / NOTA_MAXIMA
     desenho = Drawing(largura, altura)
     desenho.add(String(0, altura - 0.45 * cm, _seguro(criterio['titulo']), fontName='Helvetica-Bold', fontSize=10,

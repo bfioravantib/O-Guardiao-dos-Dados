@@ -1,9 +1,6 @@
-{# Macros das telas de estatísticas e jornadas. As fatias da pizza são calculadas em Controller/graficos.py. #}
 
-{# Percentual formatado ("80%"), ou um traço quando não há respostas. #}
 {% macro percentual(taxa) %}{{ '–' if taxa is none else taxa ~ '%' }}{% endmacro %}
 
-{# Gráfico de pizza de acertos x erros. #}
 {% macro pizza(acertos, erros, titulo, subtitulo='') %}
 {% set fatias = fatias_pizza(acertos, erros) %}
 <figure class="grafico-pizza">
@@ -30,7 +27,6 @@
 </figure>
 {% endmacro %}
 
-{# Barras com a média de aproveitamento de cada participante; a linha tracejada marca a média geral. #}
 {% macro barras_participantes(participantes, media_geral) %}
 <figure class="grafico-barras">
     <ol class="barras">
@@ -40,8 +36,8 @@
             <span class="barra-nome" title="{{ nome }}">{{ nome }}</span>
             <span class="barra-trilho" role="img"
                   aria-label="{{ nome }}: média de {{ p.media }}% em {{ p.jornadas }} {{ 'jornada' if p.jornadas == 1 else 'jornadas' }}">
-                <span class="barra-preenchida" style="width: {{ p.media }}%"></span>
-                {% if media_geral is not none %}<span class="barra-marca-media" style="left: {{ media_geral }}%"></span>{% endif %}
+                <span class="barra-preenchida" {{ estilo_percentual('width', p.media) }}></span>
+                {% if media_geral is not none %}<span class="barra-marca-media" {{ estilo_percentual('left', media_geral) }}></span>{% endif %}
             </span>
             <span class="barra-valor">
                 <strong>{{ p.media }}%</strong>
@@ -56,10 +52,8 @@
 </figure>
 {% endmacro %}
 
-{# Média com uma casa decimal e vírgula ("7,4"), ou um traço quando ainda não há avaliações. #}
 {% macro media_nota(media) %}{{ '–' if media is none else ('%.1f'|format(media))|replace('.', ',') }}{% endmacro %}
 
-{# Colunas com quantas avaliações deram cada nota (1 a nota_maxima) para um critério, com a média no topo. #}
 {% macro grafico_notas(criterio, nota_maxima) %}
 <figure class="grafico-notas">
     <figcaption>
@@ -72,7 +66,7 @@
         {% set altura = (qtd / criterio.maior_contagem * 100) if criterio.maior_contagem else 0 %}
         <li class="coluna-nota {{ 'vazia' if not qtd }}" title="Nota {{ loop.index }}: {{ qtd }} {{ 'avaliação' if qtd == 1 else 'avaliações' }}">
             <span class="contagem">{{ qtd or '' }}</span>
-            <span class="barra-nota" style="height: {{ altura|round(1) }}%"></span>
+            <span class="barra-nota" {{ estilo_percentual('height', altura) }}></span>
         </li>
         {% endfor %}
     </ol>
